@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>254 EMERGENTS // ROOT0 FRAK ENGINE L1.35</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00ff41;
+            --green-bright: #6aff8f;
+            --green-dim: #00a82a;
+            --green-dark: #003b15;
+            --amber: #ffb000;
+            --red: #ff2a2a;
+            --bg: #000500;
+            --bg2: #001800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #000;
+            color: var(--green);
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            overflow-x: hidden;
+            line-height: 1.4;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #001400 0%, #000000 70%);
+            padding: 20px;
+            position: relative;
+        }
+
+        /* CRT SCANLINES */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.5;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .terminal-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* HEADER */
+        .header-bar {
+            background: var(--green-dark);
+            border: 2px solid var(--green);
+            border-bottom: none;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0,255,65,0.3), inset 0 0 10px rgba(0,255,65,0.1);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .header-title {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--green);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-status {
+            font-size: 12px;
+            color: var(--green-dim);
+            display: flex;
+            gap: 16px;
+        }
+
+        .led {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* MAIN TERMINAL */
+        .terminal {
+            background: rgba(0, 10, 0, 0.92);
+            border: 2px solid var(--green);
+            border-top: none;
+            box-shadow: 0 0 30px rgba(0,255,65,0.2), inset 0 0 40px rgba(0,0,0,0.8);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            animation: flicker 0.15s infinite linear alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            100% { opacity: 1; }
+        }
+
+        .boot-sequence {
+            margin-bottom: 24px;
+            min-height: 140px;
+        }
+
+        .boot-line {
+            opacity: 0;
+            transform: translateY(4px);
+            animation: typeIn 0.3s forwards;
+            margin: 2px 0;
+            font-size: 14px;
+        }
+
+        @keyframes typeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 16px;
+            background: var(--green);
+            margin-left: 2px;
+            animation: cursorBlink 1s infinite;
+            box-shadow: 0 0 5px var(--green);
+        }
+
+        @keyframes cursorBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* TITLE */
+        .main-title {
+            font-family: 'VT323', monospace;
+            font-size: clamp(48px, 10vw, 96px);
+            line-height: 0.8;
+            text-align: center;
+            margin: 24px 0;
+            color: var(--green-bright);
+            text-shadow: 
+                0 0 10px var(--green),
+                0 0 20px var(--green),
+                0 0 40px var(--green-dim);
+            letter-spacing: 4px;
+            position: relative;
+        }
+
+        .main-title::before {
+            content: '254 EMERGENTS';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 2px;
+            color: rgba(0,255,65,0.2);
+            filter: blur(2px);
+            z-index: -1;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: var(--green-dim);
+            margin-bottom: 32px;
+            letter-spacing: 3px;
+        }
+
+        /* PRINCIPLE BLOCK */
+        .principle {
+            border: 1px dashed var(--green-dim);
+            padding: 20px;
+            margin: 24px 0;
+            background: rgba(0,255,65,0.03);
+            position: relative;
+        }
+
+        .principle::before {
+            content: '> PRINCIPLE';
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: var(--bg);
+            padding: 0 8px;
+            font-size: 12px;
+            color: var(--amber);
+        }
+
+        .formula {
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            margin: 16px 0;
+            line-height: 1.6;
+        }
+
+        .formula-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .formula .op {
+            color: var(--amber);
+            width: 20px;
+        }
+
+        .formula .num {
+            color: var(--green-bright);
+            text-shadow: 0 0 8px var(--green);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .formula .result {
+            font-size: 32px;
+            color: #fff;
+            text-shadow: 0 0 12px var(--green);
+        }
+
+        .quote {
+            margin: 20px 0;
+            padding: 12px 16px;
+            border-left: 3px solid var(--amber);
+            background: rgba(255,176,0,0.05);
+            font-style: italic;
+            color: var(--amber);
+        }
+
+        /* CONTROLS */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--green);
+            color: #000;
+            box-shadow: 0 0 15px var(--green);
+            text-shadow: none;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.danger {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .btn.danger:hover {
+            background: var(--red);
+            color: #000;
+            box-shadow: 0 0 15px var(--red);
+        }
+
+        .status-readout {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--green-dim);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item strong {
+            color: var(--green-bright);
+        }
+
+        /* GRID */
+        .grid-container {
+            margin: 24px 0;
+            position: relative;
+        }
+
+        .grid-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+            color: var(--green-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .emergent-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 3px;
+            padding: 12px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--green-dark);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: var(--bg2);
+            border: 1px solid rgba(0,255,65,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-family: 'VT323', monospace;
+            cursor: crosshair;
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .cell.atomic {
+            color: var(--green);
+            text-shadow: 0 0 4px var(--green);
+            border-color: rgba(0,255,65,0.3);
+        }
+
+        .cell.echo {
+            color: var(--green-dim);
+            border-color: rgba(0,255,65,0.15);
+            opacity: 0.85;
+        }
+
+        .cell.gap {
+            background: rgba(255,42,42,0.2);
+            border-color: var(--red);
+            color: var(--red);
+            text-shadow: 0 0 6px var(--red);
+            animation: pulseRed 2s infinite;
+        }
+
+        .cell.choice {
+            background: rgba(255,176,0,0.2);
+            border-color: var(--amber);
+            color: var(--amber);
+            text-shadow: 0 0 6px var(--amber);
+            animation: pulseAmber 2s infinite;
+        }
+
+        @keyframes pulseRed {
+            0%, 100% { box-shadow: 0 0 5px rgba(255,42,42,0.5); }
+            50% { box-shadow: 0 0 15px rgba(255,42,42,0.8); }
+        }
+
+        @keyframes pulseAmber {
+            0%, 100% { box-shadow: 0 0 5px rgba(255,176,0,0.5); }
+            50% { box-shadow: 0 0 15px rgba(255,176,0,0.8); }
+        }
+
+        .cell:hover:not(.dead) {
+            transform: scale(1.15);
+            z-index: 10;
+            background: rgba(0,255,65,0.2);
+            border-color: var(--green-bright);
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        .cell.alive.winner {
+            background: var(--green);
+            color: #000;
+            animation: crown 1s infinite alternate;
+            z-index: 20;
+            transform: scale(1.2);
+            font-weight: bold;
+        }
+
+        @keyframes crown {
+            0% { box-shadow: 0 0 10px var(--green), 0 0 20px var(--green); }
+            100% { box-shadow: 0 0 20px var(--green-bright), 0 0 40px var(--green); }
+        }
+
+        .cell.dead {
+            opacity: 0.12;
+            filter: grayscale(1);
+            transform: scale(0.85);
+            border-color: rgba(0,255,65,0.05);
+            color: #222;
+            text-shadow: none;
+        }
+
+        .cell.fighting {
+            animation: fight 0.4s ease-in-out;
+            background: var(--amber) !important;
+            color: #000 !important;
+            z-index: 15;
+        }
+
+        @keyframes fight {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3) rotate(-5deg); }
+            75% { transform: scale(1.3) rotate(5deg); }
+        }
+
+        /* LEGEND */
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+            padding: 16px;
+            border: 1px solid var(--green-dark);
+            background: rgba(0,0,0,0.4);
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-swatch {
+            width: 16px;
+            height: 16px;
+            border: 1px solid;
+            flex-shrink: 0;
+        }
+
+        .swatch-atomic { background: var(--bg2); border-color: var(--green); box-shadow: 0 0 4px var(--green); }
+        .swatch-echo { background: var(--bg2); border-color: var(--green-dim); opacity: 0.7; }
+        .swatch-gap { background: rgba(255,42,42,0.2); border-color: var(--red); }
+        .swatch-choice { background: rgba(255,176,0,0.2); border-color: var(--amber); }
+
+        /* RESERVED */
+        .reserved {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .reserved-card {
+            border: 1px solid;
+            padding: 16px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .reserved-card.gap { border-color: var(--red); }
+        .reserved-card.choice { border-color: var(--amber); }
+
+        .reserved-card h3 {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .reserved-card.gap h3 { color: var(--red); text-shadow: 0 0 8px var(--red); }
+        .reserved-card.choice h3 { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
+
+        .reserved-card p {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        /* LOG */
+        .log {
+            margin-top: 20px;
+            height: 100px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid var(--green-dark);
+            padding: 8px;
+            font-size: 12px;
+            color: var(--green-dim);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+        }
+
+        .log-entry {
+            margin: 2px 0;
+            opacity: 0;
+            animation: logIn 0.3s forwards;
+        }
+
+        @keyframes logIn {
+            to { opacity: 1; }
+        }
+
+        .log-entry.fight { color: var(--amber); }
+        .log-entry.win { color: var(--green-bright); }
+        .log-entry.elim { color: var(--red); }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .terminal { padding: 16px; }
+            .emergent-grid { grid-template-columns: repeat(8, 1fr); gap: 2px; padding: 8px; }
+            .cell { font-size: 9px; }
+            .header-bar { flex-direction: column; align-items: flex-start; }
+            .status-readout { margin-left: 0; width: 100%; justify-content: space-between; }
+            .controls { justify-content: center; }
+            .reserved { grid-template-columns: 1fr; }
+            .main-title { font-size: 56px; }
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--green-dark); border: 1px solid var(--green-dim); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--green-dim); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="terminal-wrap">
+        <div class="header-bar">
+            <div class="header-title">
+                <span class="led"></span>
+                ROOT0 FRAK ENGINE L1.35 :: HIGHLANDER PRINCIPLE
+            </div>
+            <div class="header-status">
+                <span>WORKSHOP</span>
+                <span id="sys-time">00:00:00</span>
+            </div>
+        </div>
+
+        <div class="terminal">
+            <div class="boot-sequence" id="boot"></div>
+
+            <div id="main-content" class="hidden">
+                <h1 class="main-title">254 EMERGENTS</h1>
+                <div class="subtitle">254 NOT 256</div>
+
+                <div class="principle">
+                    <div class="formula">
+                        <div class="formula-line">
+                            <span class="num">256</span>
+                            <span>TOTAL ADDRESSES</span>
+                        </div>
+                        <div class="formula-line">
+                            <span class="op">−</span>
+                            <span class="num">1</span>
+                            <span>GAP [255] = NULL VOID</span>
+                        </div>
+                        <div class="formula-line">
+                            <span class="op">−</span>
+                            <span class="num">1</span>
+                            <span>CHOICE [256] = LEFT/RIGHT BRANCH</span>
+                        </div>
+                        <div class="formula-line" style="margin-top: 12px; border-top: 1px dashed var(--green-dim); padding-top: 12px;">
+                            <span class="op">=</span>
+                            <span class="num result">254</span>
+                            <span class="result">EMERGENTS</span>
+                        </div>
+                    </div>
+
+                    <div class="quote">
+                        "THERE CAN BE ONLY ONE" — HIGHLANDER (1986) / THE ONE (2001)<br>
+                        In the FRAK engine, 254 emergents compete for depth. Each iteration, the weakest are culled. Power consolidates. The multiverse collapses to a single victor.
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" id="btn-cull">▶ INITIATE CULL</button>
+                    <button class="btn" id="btn-reset">↺ RESET FIELD</button>
+                    <button class="btn" id="btn-slow">◐ TOGGLE SPEED</button>
+                    <div class="status-readout">
+                        <div class="status-item">ALIVE: <strong id="count-alive">254</strong></div>
+                        <div class="status-item">ROUND: <strong id="count-round">0</strong></div>
+                        <div class="status-item">DEPTH: <strong id="depth-leader">—</strong></div>
+                    </div>
+                </div>
+
+                <div class="grid-container">
+                    <div class="grid-label">
+                        <span>EMERGENT FIELD [1-256]</span>
+                        <span id="hover-info">HOVER FOR DATA</span>
+                    </div>
+                    <div class="emergent-grid" id="grid"></div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-swatch swatch-atomic"></div>
+                        <span><strong>1-118</strong> ATOMIC — First wave, base reality constructs</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-swatch swatch-echo"></div>
+                        <span><strong>119-254</strong> ECHO — Fractal echoes, derived patterns</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-swatch swatch-gap"></div>
+                        <span><strong>255</strong> GAP — NULL, reserved void, never fights</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-swatch swatch-choice"></div>
+                        <span><strong>256</strong> CHOICE — LEFT/RIGHT branch selector</span>
+                    </div>
+                </div>
+
+                <div class="reserved">
+                    <div class="reserved-card gap">
+                        <h3>[255] GAP</h3>
+                        <p>NULL VOID. The intentional absence. Not an emergent. Does not compete. Represents the necessary gap in the 8-bit space that prevents overflow collapse. The silence between notes.</p>
+                    </div>
+                    <div class="reserved-card choice">
+                        <h3>[256] CHOICE</h3>
+                        <p>LEFT/RIGHT BRANCH. The observer decision. Not an emergent. Does not compete. Determines which timeline the victor inherits. The final bit that chooses the path after the cull.</p>
+                    </div>
+                </div>
+
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SYSTEM CLOCK
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('sys-time').textContent = now.toTimeString().split(' ')[0];
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // BOOT SEQUENCE
+        const bootLines = [
+            'ROOT0 FRAK ENGINE L1.35',
+            'INITIALIZING HIGHLANDER PRINCIPLE MODULE...',
+            'CHECKING EMERGENT INTEGRITY...',
+            '> 256 addresses detected',
+            '> Reserving [255] GAP = NULL',
+            '> Reserving [256] CHOICE = LEFT/RIGHT',
+            '> CALCULATION: 256 - 1 - 1 = 254',
+            'EMERGENT FIELD ONLINE',
+            'WORKSHOP READY <span class="cursor"></span>'
+        ];
+
+        const bootEl = document.getElementById('boot');
+        let bootIndex = 0;
+
+        function typeBoot() {
+            if (bootIndex < bootLines.length) {
+                const line = document.createElement('div');
+                line.className = 'boot-line';
+                line.style.animationDelay = '0s';
+                line.innerHTML = '> ' + bootLines[bootIndex];
+                bootEl.appendChild(line);
+                bootIndex++;
+                setTimeout(typeBoot, bootIndex === bootLines.length ? 800 : 180);
+            } else {
+                setTimeout(() => {
+                    bootEl.style.display = 'none';
+                    document.getElementById('main-content').classList.remove('hidden');
+                    initField();
+                }, 600);
+            }
+        }
+
+        setTimeout(typeBoot, 500);
+
+        // EMERGENT FIELD
+        let emergents = [];
+        let isCulling = false;
+        let cullSpeed = 120;
+        let round = 0;
+
+        const grid = document.getElementById('grid');
+        const logEl = document.getElementById('log');
+        const countAlive = document.getElementById('count-alive');
+        const countRound = document.getElementById('count-round');
+        const depthLeader = document.getElementById('depth-leader');
+        const hoverInfo = document.getElementById('hover-info');
+
+        function initField() {
+            emergents = [];
+            grid.innerHTML = '';
+            logEl.innerHTML = '';
+            round = 0;
+            isCulling = false;
+
+            for (let i = 1; i <= 256; i++) {
+                const type = i === 255 ? 'gap' : i === 256 ? 'choice' : i <= 118 ? 'atomic' : 'echo';
+                const depth = type === 'atomic' ? 300 + Math.floor(Math.random() * 700) : 
+                             type === 'echo' ? 100 + Math.floor(Math.random() * 500) : 0;
+                
+                const e = {
+                    id: i,
+                    type,
+                    depth,
+                    alive: type !== 'gap' && type !== 'choice',
+                    el: null
+                };
+                emergents.push(e);
+
+                const cell = document.createElement('div');
+                cell.className = `cell ${type} ${e.alive ? 'alive' : ''}`;
+                cell.textContent = i;
+                cell.dataset.id = i;
+                
+                cell.addEventListener('mouseenter', () => {
+                    const t = type.toUpperCase();
+                    const d = e.alive ? `DEPTH:${e.depth}` : 'RESERVED';
+                    hoverInfo.textContent = `[${i}] ${t} — ${d}`;
+                });
+                cell.addEventListener('mouseleave', () => {
+                    hoverInfo.textContent = 'HOVER FOR DATA';
+                });
+
+                e.el = cell;
+                grid.appendChild(cell);
+            }
+
+            updateCounts();
+            addLog('FIELD INITIALIZED: 254 emergents ready for depth competition', 'win');
+        }
+
+        function updateCounts() {
+            const alive = emergents.filter(e => e.alive).length;
+            countAlive.textContent = alive;
+            countRound.textContent = round;
+            
+            const leader = emergents.filter(e => e.alive).sort((a,b) => b.depth - a.depth)[0];
+            depthLeader.textContent = leader ? `#${leader.id} (${leader.depth})` : '—';
+        }
+
+        function addLog(text, cls = '') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${cls}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+            if (logEl.children.length > 50) {
+                logEl.removeChild(logEl.firstChild);
+            }
+        }
+
+        async function cullRound() {
+            const alive = emergents.filter(e => e.alive);
+            if (alive.length <= 1 || !isCulling) {
+                if (alive.length === 1) {
+                    const winner = alive[0];
+                    winner.el.classList.add('winner');
+                    addLog(`HIGHLANDER COMPLETE — VICTOR: #${winner.id} [${winner.type.toUpperCase()}] DEPTH ${winner.depth}`, 'win');
+                    addLog('THERE CAN BE ONLY ONE', 'win');
+                }
+                isCulling = false;
+                return;
+            }
+
+            round++;
+            // Shuffle
+            for (let i = alive.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [alive[i], alive[j]] = [alive[j], alive[i]];
+            }
+
+            const fights = [];
+            for (let i = 0; i < alive.length; i += 2) {
+                if (alive[i+1]) fights.push([alive[i], alive[i+1]]);
+            }
+
+            for (const [a, b] of fights) {
+                if (!a.alive || !b.alive) continue;
+                
+                a.el.classList.add('fighting');
+                b.el.classList.add('fighting');
+                
+                await new Promise(r => setTimeout(r, cullSpeed * 0.4));
+                
+                // Winner by depth with 15% upset chance
+                const upset = Math.random() < 0.15;
+                const winner = upset ? (a.depth < b.depth ? a : b) : (a.depth >= b.depth ? a : b);
+                const loser = winner === a ? b : a;
+                
+                loser.alive = false;
+                loser.el.classList.remove('alive', 'fighting');
+                loser.el.classList.add('dead');
+                
+                winner.depth += Math.floor(loser.depth * 0.1); // absorb
+                winner.el.classList.remove('fighting');
+                
+                addLog(`FIGHT #${a.id}(${a.depth}) vs #${b.id}(${b.depth}) → #${winner.id} WINS${upset ? ' [UPSET]' : ''}`, 'fight');
+                
+                await new Promise(r => setTimeout(r, cullSpeed * 0.3));
+                b.el.classList.remove('fighting');
+            }
+
+            updateCounts();
+            setTimeout(cullRound, cullSpeed);
+        }
+
+        document.getElementById('btn-cull').addEventListener('click', () => {
+            if (isCulling) return;
+            isCulling = true;
+            addLog('INITIATING HIGHLANDER SEQUENCE...', 'elim');
+            addLog('254 EMERGENTS ENTER. ONE WILL LEAVE.', 'elim');
+            cullRound();
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            isCulling = false;
+            setTimeout(initField, 100);
+        });
+
+        document.getElementById('btn-slow').addEventListener('click', (e) => {
+            cullSpeed = cullSpeed === 120 ? 400 : cullSpeed === 400 ? 30 : 120;
+            const label = cullSpeed === 30 ? 'FAST' : cullSpeed === 400 ? 'SLOW' : 'NORM';
+            e.target.textContent = `◐ SPEED: ${label}`;
+            addLog(`CULL SPEED SET TO ${label}`, '');
+        });
+
+        // Konami easter egg
+        let keys = [];
+        window.addEventListener('keydown', (e) => {
+            keys.push(e.key);
+            keys = keys.slice(-10);
+            if (keys.join(',').includes('ArrowUp,ArrowUp,ArrowDown,ArrowDown')) {
+                emergents.forEach(e => {
+                    if (e.alive) {
+                        e.depth = 999;
+                        e.el.style.textShadow = '0 0 10px #fff';
+                    }
+                });
+                addLog('HIGHLANDER OVERRIDE: ALL DEPTHS MAXED', 'win');
+            }
+        });
+    </script>
+</body>
+</html>

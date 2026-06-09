@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROOT0 LAYER 1.00 — 132-Bit Emergent</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Space Grotesk', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace']
+      }
+    }
+  }
+}
+</script>
+<style>
+:root {
+  --cyan: #00e5ff;
+  --amber: #ffb300;
+  --violet: #8b5cf6;
+}
+* { -webkit-font-smoothing: antialiased; }
+body {
+  background: #02040a;
+  color: #c8f7ff;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(600px at 15% 20%, rgba(0,229,255,0.12), transparent 60%),
+    radial-gradient(800px at 85% 15%, rgba(139,92,246,0.14), transparent 60%),
+    radial-gradient(700px at 50% 85%, rgba(255,179,0,0.08), transparent 60%),
+    radial-gradient(1000px at 50% 50%, #0a1122 0%, #02040a 70%);
+  z-index: -2;
+  animation: drift 30s ease-in-out infinite alternate;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: -1;
+  opacity: 0.5;
+}
+@keyframes drift {
+  0% { transform: translate(0,0) scale(1); }
+  100% { transform: translate(-20px, -30px) scale(1.05); }
+}
+@keyframes corePulse {
+  0%, 100% { transform: scale(1); filter: brightness(1) saturate(1); }
+  50% { transform: scale(1.06); filter: brightness(1.25) saturate(1.3); }
+}
+@keyframes ringRotate {
+  to { transform: rotate(360deg); }
+}
+@keyframes ringRotateRev {
+  to { transform: rotate(-360deg); }
+}
+@keyframes nodePulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(0,229,255,0.25), inset 0 0 12px rgba(0,229,255,0.1); }
+  50% { box-shadow: 0 0 28px rgba(0,229,255,0.5), inset 0 0 18px rgba(0,229,255,0.2); }
+}
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes flow {
+  0% { stroke-dashoffset: 200; }
+  100% { stroke-dashoffset: 0; }
+}
+.panel {
+  background: linear-gradient(180deg, rgba(10,18,35,0.85), rgba(5,10,22,0.8));
+  border: 1px solid rgba(0,229,255,0.15);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.core-132 {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(139,92,246,0.9) 15%, rgba(0,229,255,0.85) 45%, rgba(3,6,15,0.95) 70%);
+  box-shadow: 
+    0 0 60px rgba(139,92,246,0.7),
+    0 0 120px rgba(0,229,255,0.4),
+    inset 0 0 40px rgba(0,229,255,0.6),
+    inset 0 0 80px rgba(139,92,246,0.3);
+  animation: corePulse 2.8s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.core-132::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, rgba(0,229,255,0.4), transparent, rgba(139,92,246,0.4), transparent);
+  animation: ringRotate 8s linear infinite;
+  filter: blur(12px);
+  z-index: -1;
+}
+.core-132::after {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(2,4,10,0.9) 0%, transparent 70%);
+}
+.ring {
+  fill: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.agent-node {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, rgba(20,35,60,0.95), rgba(5,10,20,0.98));
+  border: 1.5px solid rgba(0,229,255,0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
+  box-shadow: 0 0 18px rgba(0,229,255,0.18), inset 0 0 10px rgba(0,229,255,0.08);
+  position: absolute;
+  animation: nodePulse 3s ease-in-out infinite;
+  user-select: none;
+}
+.agent-node:hover {
+  transform: translate(-50%,-50%) scale(1.12) !important;
+  border-color: rgba(255,179,0,0.8);
+  box-shadow: 0 0 35px rgba(255,179,0,0.45), 0 0 60px rgba(0,229,255,0.3);
+  z-index: 50;
+}
+.agent-node.active {
+  border-color: var(--amber);
+  box-shadow: 0 0 30px rgba(255,179,0,0.6), inset 0 0 15px rgba(255,179,0,0.2);
+}
+.agent-node .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00ff9d;
+  box-shadow: 0 0 8px #00ff9d;
+  animation: statusBlink 1.6s infinite;
+  margin-bottom: 4px;
+}
+.task-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid currentColor;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+.link-line {
+  stroke-dasharray: 4 8;
+  animation: flow 2s linear infinite;
+  opacity: 0.6;
+}
+@media (max-width: 1024px) {
+  .agent-node { width: 64px; height: 64px; }
+  .agent-node .label { font-size: 10px; }
+  .core-132 { width: 130px; height: 130px; }
+}
+.scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.3); border-radius: 2px; }
+</style>
+</head>
+<body class="font-sans min-h-screen flex flex-col selection:bg-violet-500/30 selection:text-white">
+  <!-- TOP BANNER -->
+  <header class="relative z-40 border-b border-cyan-500/20 bg-black/70 backdrop-blur-xl">
+    <div class="absolute inset-0 bg-gradient-to-r from-violet-950/20 via-transparent to-cyan-950/20"></div>
+    <div class="relative max-w-[1920px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#22c55e] animate-pulse"></div>
+        <h1 class="text-[13px] sm:text-[15px] md:text-[18px] font-semibold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-violet-300 to-amber-300">
+          ROOT0 LAYER 1.00 — EMERGENT EXPANDED TO FULL 132 BITS (CLEAN 5-STACK BOUND)
+        </h1>
+      </div>
+      <div class="hidden md:flex items-center gap-5 text-[11px] font-mono">
+        <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span> CLEAN BOUND</div>
+        <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span> 24/24 ONLINE</div>
+        <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse"></span> 132-BIT NATIVE</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-[1920px] mx-auto px-3 lg:px-4 py-4 grid grid-cols-12 gap-4">
+    <!-- LEFT PANEL -->
+    <aside class="col-span-12 lg:col-span-3 xl:col-span-2 order-2 lg:order-1 space-y-3">
+      <div class="panel rounded-2xl p-4">
+        <h2 class="text-[11px] uppercase tracking-[0.2em] text-cyan-400/80 mb-3 font-semibold">132-Bit Breakdown</h2>
+        <div class="space-y-3.5 font-mono text-[12px]">
+          <div>
+            <div class="flex justify-between mb-1"><span class="text-cyan-200">52 bits pure emergence</span><span class="text-cyan-400">13×4</span></div>
+            <div class="h-[6px] bg-black/60 rounded-full overflow-hidden"><div class="h-full w-[39.4%] bg-gradient-to-r from-cyan-500 to-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.5)]"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span class="text-violet-200">nested 3-bit control ×4</span><span class="text-violet-400">12</span></div>
+            <div class="h-[6px] bg-black/60 rounded-full overflow-hidden"><div class="h-full w-[9.1%] bg-gradient-to-r from-violet-600 to-violet-400"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span class="text-amber-200">yes/no context bits</span><span class="text-amber-400">32</span></div>
+            <div class="h-[6px] bg-black/60 rounded-full overflow-hidden"><div class="h-full w-[24.2%] bg-gradient-to-r from-amber-600 to-amber-400"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span class="text-slate-300">remaining overhead</span><span class="text-slate-400">36</span></div>
+            <div class="h-[6px] bg-black/60 rounded-full overflow-hidden"><div class="h-full w-[27.3%] bg-gradient-to-r from-slate-600 to-slate-400"></div></div>
+          </div>
+          <div class="pt-2 border-t border-white/10 flex justify-between text-[13px]">
+            <span class="text-white/70">TOTAL</span><span class="text-white font-semibold tracking-wider">132 BITS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-4">
+        <h2 class="text-[11px] uppercase tracking-[0.2em] text-violet-400/80 mb-3 font-semibold">5-Stack Status</h2>
+        <div class="space-y-2.5 font-mono text-[11px]">
+          <div class="flex items-center gap-2"><div class="w-8 text-right text-cyan-400">-+n</div><div class="flex-1 h-[3px] bg-cyan-400/20 rounded"><div class="h-full w-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></div></div><span class="text-emerald-400">CLEAN</span></div>
+          <div class="flex items-center gap-2"><div class="w-8 text-right text-violet-400">x</div><div class="flex-1 h-[3px] bg-violet-400/20 rounded"><div class="h-full w-full bg-violet-400 shadow-[0_0_6px_#8b5cf6]"></div></div><span class="text-emerald-400">CLEAN</span></div>
+          <div class="flex items-center gap-2"><div class="w-8 text-right text-amber-400">y</div><div class="flex-1 h-[3px] bg-amber-400/20 rounded"><div class="h-full w-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></div></div><span class="text-emerald-400">CLEAN</span></div>
+          <div class="flex items-center gap-2"><div class="w-8 text-right text-cyan-400">z</div><div class="flex-1 h-[3px] bg-cyan-400/20 rounded"><div class="h-full w-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]"></div></div><span class="text-emerald-400">CLEAN</span></div>
+          <div class="flex items-center gap-2"><div class="w-8 text-right text-violet-400">w</div><div class="flex-1 h-[3px] bg-violet-400/20 rounded"><div class="h-full w-full bg-violet-400 shadow-[0_0_6px_#8b5cf6]"></div></div><span class="text-emerald-400">CLEAN</span></div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-white/5 text-[10px] text-center text-white/50">PERFECTLY BOUNDED • NO LEAKAGE</div>
+      </div>
+    </aside>
+
+    <!-- CENTER CORE -->
+    <section class="col-span-12 lg:col-span-6 xl:col-span-8 order-1 lg:order-2">
+      <div class="panel rounded-2xl p-3 md:p-5 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 24px 24px;"></div>
+        
+        <div id="core-viz" class="relative w-full max-w-[720px] aspect-square mx-auto">
+          <!-- SVG LAYERS -->
+          <svg id="connections" viewBox="0 0 800 800" class="absolute inset-0 w-full h-full pointer-events-none">
+            <defs>
+              <radialGradient id="ringGlow" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="rgba(0,229,255,0.8)"/>
+                <stop offset="100%" stop-color="rgba(0,229,255,0)"/>
+              </radialGradient>
+              <linearGradient id="linkGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.1"/>
+                <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="#ffb300" stop-opacity="0.1"/>
+              </linearGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <g id="rings-container" transform="translate(400,400)"></g>
+            <g id="links-container" opacity="0.5"></g>
+            <g id="particles-container"></g>
+          </svg>
+
+          <!-- CENTRAL CORE -->
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+            <div class="core-132">
+              <span class="relative z-10 font-mono font-bold text-[44px] md:text-[52px] tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]">132</span>
+            </div>
+            <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-mono uppercase tracking-[0.3em] text-cyan-300/70">EMERGENT CORE</div>
+          </div>
+
+          <!-- AGENTS LAYER -->
+          <div id="agents-layer" class="absolute inset-0 z-30"></div>
+
+          <!-- DETAIL MODAL -->
+          <div id="detailModal" class="hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[300px] sm:w-[340px] panel rounded-xl p-4 border-cyan-400/30 shadow-2xl shadow-black/70">
+            <button id="closeDetail" class="absolute right-2.5 top-2.5 w-6 h-6 grid place-items-center rounded-full hover:bg-white/10 text-cyan-300/70 hover:text-white transition">✕</button>
+            <h3 id="detailTitle" class="font-mono text-[15px] font-semibold text-amber-300 tracking-wider mb-3">AGENT 01</h3>
+            <div class="space-y-2.5 text-[12px] font-mono">
+              <div class="grid grid-cols-3 gap-2"><span class="text-cyan-400/70">STATUS</span><span class="col-span-2 text-emerald-400">ACTIVE</span></div>
+              <div class="grid grid-cols-3 gap-2"><span class="text-cyan-400/70">TASK</span><span id="detailTask" class="col-span-2 text-violet-300">BUILD</span></div>
+              <div class="grid grid-cols-3 gap-2"><span class="text-cyan-400/70">BITS</span><span id="detailBits" class="col-span-2 text-white">17,583,333,333,333</span></div>
+              <div class="grid grid-cols-3 gap-2"><span class="text-cyan-400/70">SLICE</span><span id="detailSlice" class="col-span-2 text-cyan-200">132-bit #01/24</span></div>
+              <div class="pt-2.5 mt-2 border-t border-white/10">
+                <div class="text-[10px] uppercase tracking-widest text-violet-400/80 mb-1.5">132-Bit Payload (live)</div>
+                <div id="detailPayload" class="p-2.5 bg-black/70 rounded-lg border border-violet-500/20 text-[10px] leading-[1.6] break-all text-violet-200/90 max-h-[84px] overflow-auto scrollbar-thin"></div>
+              </div>
+              <div class="flex items-center gap-2 pt-1 text-[10px] text-white/40">
+                <div class="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></div>
+                Processing inside 5-stack bound
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 text-[10px] font-mono uppercase tracking-wider text-white/40">
+          <span>PHOTONIC CORE → BORON → i7</span>
+          <span class="text-cyan-400/60">→ 24 SUBAGENTS →</span>
+          <span class="text-violet-400/60">BACK TO CORE</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <aside class="col-span-12 lg:col-span-3 xl:col-span-2 order-3 space-y-3">
+      <div class="panel rounded-2xl p-4">
+        <h2 class="text-[11px] uppercase tracking-[0.2em] text-amber-400/80 mb-3 font-semibold">Tethered Triplet</h2>
+        <svg viewBox="0 0 260 160" class="w-full h-auto">
+          <!-- Left Hemisphere -->
+          <g>
+            <path d="M20 50 C20 18 50 12 70 28 C80 18 105 16 115 36 C125 20 152 22 158 48 C162 72 150 96 128 108 C110 118 92 112 78 100 C60 114 28 104 20 78 Z" fill="rgba(0,229,255,0.08)" stroke="#00e5ff" stroke-width="1.5"/>
+            <text x="78" y="68" text-anchor="middle" font-size="9" fill="#7dd3fc" font-family="JetBrains Mono">LEFT</text>
+            <circle cx="65" cy="55" r="2" fill="#00e5ff" opacity="0.8"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/></circle>
+            <circle cx="95" cy="80" r="2" fill="#00e5ff" opacity="0.8"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.3s" repeatCount="indefinite"/></circle>
+          </g>
+          <!-- Right Hemisphere -->
+          <g>
+            <path d="M102 50 C102 18 132 12 152 28 C162 18 187 16 197 36 C207 20 234 22 240 48 C244 72 232 96 210 108 C192 118 174 112 160 100 C142 114 110 104 102 78 Z" fill="rgba(139,92,246,0.08)" stroke="#8b5cf6" stroke-width="1.5" transform="translate(-2,0)"/>
+            <text x="172" y="68" text-anchor="middle" font-size="9" fill="#c4b5fd" font-family="JetBrains Mono">RIGHT</text>
+            <circle cx="165" cy="55" r="2" fill="#8b5cf6" opacity="0.8"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.1s" repeatCount="indefinite"/></circle>
+            <circle cx="195" cy="80" r="2" fill="#8b5cf6" opacity="0.8"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.5s" repeatCount="indefinite"/></circle>
+          </g>
+          <!-- Corpus Callosum -->
+          <g>
+            <rect x="112" y="56" width="36" height="7" rx="3.5" fill="url(#linkGrad)" opacity="0.9"/>
+            <rect x="112" y="67" width="36" height="5" rx="2.5" fill="#ffb300" opacity="0.7"/>
+            <rect x="112" y="76" width="36" height="4" rx="2" fill="#ffb300" opacity="0.5"/>
+            <text x="130" y="52" text-anchor="middle" font-size="8" fill="#fbbf24" font-family="JetBrains Mono">CORPUS CALLOSUM</text>
+          </g>
+          <!-- Hippocampus + Prefrontal -->
+          <g transform="translate(0,110)">
+            <rect x="15" y="0" width="108" height="28" rx="6" fill="rgba(0,0,0,0.5)" stroke="rgba(0,229,255,0.2)"/>
+            <text x="22" y="12" font-size="8" fill="#67e8f9" font-family="JetBrains Mono">HIPPOCAMPUS</text>
+            <text x="22" y="22" font-size="7" fill="#22d3ee" opacity="0.7" font-family="JetBrains Mono">monitoring • archive</text>
+            <circle cx="108" cy="14" r="3" fill="none" stroke="#22d3ee" stroke-width="1" opacity="0.6"><animate attributeName="r" values="3;5;3" dur="1.8s" repeatCount="indefinite"/></circle>
+            
+            <rect x="137" y="0" width="108" height="28" rx="6" fill="rgba(0,0,0,0.5)" stroke="rgba(139,92,246,0.2)"/>
+            <text x="144" y="12" font-size="8" fill="#c4b5fd" font-family="JetBrains Mono">PREFRONTAL CORTEX</text>
+            <text x="144" y="22" font-size="7" fill="#a78bfa" opacity="0.7" font-family="JetBrains Mono">monitoring • executive</text>
+            <circle cx="230" cy="14" r="3" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.6"><animate attributeName="r" values="3;5;3" dur="1.8s" begin="0.9s" repeatCount="indefinite"/></circle>
+          </g>
+        </svg>
+        <div class="mt-3 flex items-center justify-between text-[10px] font-mono">
+          <span class="text-emerald-400">SYNCHRONIZED</span>
+          <span class="text-white/40">latency 0.8ms</span>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-4">
+        <h2 class="text-[11px] uppercase tracking-[0.2em] text-cyan-400/80 mb-2.5 font-semibold">Subagent Load</h2>
+        <div class="grid grid-cols-6 gap-1.5" id="miniGrid"></div>
+        <div class="mt-3 text-[10px] font-mono text-center text-white/50">24 parallel • ~17.58T bits each</div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- BOTTOM PIPELINE -->
+  <footer class="border-t border-cyan-500/10 bg-black/60 backdrop-blur-xl">
+    <div class="max-w-[1920px] mx-auto px-4 py-3">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="hidden sm:flex items-center gap-2 text-[11px] font-mono whitespace-nowrap">
+          <span class="text-cyan-300">PHOTONIC CORE</span>
+          <svg width="18" height="10" viewBox="0 0 18 10"><path d="M0 5 H14 M10 1 L14 5 L10 9" stroke="#22d3ee" fill="none" stroke-width="1.2"/></svg>
+          <span class="text-violet-300">BORON</span>
+          <svg width="18" height="10" viewBox="0 0 18 10"><path d="M0 5 H14 M10 1 L14 5 L10 9" stroke="#8b5cf6" fill="none" stroke-width="1.2"/></svg>
+          <span class="text-amber-300">i7</span>
+        </div>
+        <div class="flex-1 h-[36px] relative overflow-hidden rounded-lg bg-black/80 border border-white/10">
+          <div class="absolute inset-0 grid-cols-24 gap-[2px] p-[3px]" id="pipeline"></div>
+          <div class="absolute inset-0 opacity-20" style="background: linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent); animation: sweep 3s linear infinite;"></div>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-[11px] font-mono whitespace-nowrap">
+          <svg width="18" height="10" viewBox="0 0 18 10"><path d="M0 5 H14 M10 1 L14 5 L10 9" stroke="#f59e0b" fill="none" stroke-width="1.2"/></svg>
+          <span class="text-emerald-300">CORE RETURN</span>
+        </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-white/45">
+        <span>UNIFIED PIPELINE • 422,000,000,000,000 bits through 24 parallel subagents</span>
+        <span class="text-cyan-400/70">each slice processed inside clean 5-stack bound • -+nxyzw ×5</span>
+      </div>
+    </div>
+  </footer>
+
+<style>
+@keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+</style>
+
+<script>
+const tasks = ['BUILD','SMASH','BLEED','ENTANGLE'];
+const taskColors = { BUILD: '#22d3ee', SMASH: '#f59e0b', BLEED: '#a855f7', ENTANGLE: '#ec4899' };
+const agentsLayer = document.getElementById('agents-layer');
+const ringsContainer = document.getElementById('rings-container');
+const linksContainer = document.getElementById('links-container');
+const particlesContainer = document.getElementById('particles-container');
+const pipeline = document.getElementById('pipeline');
+const miniGrid = document.getElementById('miniGrid');
+
+const radii = [110, 150, 190, 230, 270];
+const ringColors = ['#00e5ff','#8b5cf6','#ffb300','#22d3ee','#a855f7'];
+const ringLabels = ['-+n','x','y','z','w'];
+
+// Create rings
+radii.forEach((r, i) => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('style', `animation: ${i%2===0?'ringRotate':'ringRotateRev'} ${28 + i*4}s linear infinite; transform-origin: 0 0`);
+  const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('r', r);
+  circle.setAttribute('class','ring');
+  circle.setAttribute('stroke', ringColors[i]);
+  circle.setAttribute('stroke-opacity','0.55');
+  circle.setAttribute('stroke-width', i===0?2.5:1.8);
+  circle.setAttribute('stroke-dasharray', i===0 ? '2 6' : '4 8');
+  g.appendChild(circle);
+  
+  const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+  label.setAttribute('x', r+6);
+  label.setAttribute('y', 4);
+  label.setAttribute('fill', ringColors[i]);
+  label.setAttribute('font-size','11');
+  label.setAttribute('font-family','JetBrains Mono');
+  label.setAttribute('opacity','0.8');
+  label.textContent = ringLabels[i];
+  g.appendChild(label);
+  ringsContainer.appendChild(g);
+});
+
+// Create agents
+const agents = [];
+for(let i=0; i<24; i++){
+  const angle = (i/24)*Math.PI*2 - Math.PI/2;
+  const r = 275;
+  const x = 400 + Math.cos(angle)*r;
+  const y = 400 + Math.sin(angle)*r;
+  
+  // link
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1','400'); line.setAttribute('y1','400');
+  line.setAttribute('x2',x); line.setAttribute('y2',y);
+  line.setAttribute('stroke','url(#linkGrad)');
+  line.setAttribute('stroke-width','1.2');
+  line.setAttribute('class','link-line');
+  line.setAttribute('opacity','0.35');
+  linksContainer.appendChild(line);
+  
+  // particles out
+  const p1 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  p1.setAttribute('r','2.8'); p1.setAttribute('fill','#00e5ff'); p1.setAttribute('filter','url(#glow)');
+  const anim1 = document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+  anim1.setAttribute('dur', (2.2 + Math.random()*0.8)+'s');
+  anim1.setAttribute('repeatCount','indefinite');
+  anim1.setAttribute('path',`M400,400 L${x},${y}`);
+  p1.appendChild(anim1);
+  particlesContainer.appendChild(p1);
+  
+  // particles back
+  const p2 = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  p2.setAttribute('r','2.2'); p2.setAttribute('fill','#ffb300'); p2.setAttribute('opacity','0.9');
+  const anim2 = document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+  anim2.setAttribute('dur', (2.6 + Math.random()*0.8)+'s');
+  anim2.setAttribute('repeatCount','indefinite');
+  anim2.setAttribute('path',`M${x},${y} L400,400`);
+  anim2.setAttribute('begin', (Math.random()*1.5)+'s');
+  p2.appendChild(anim2);
+  particlesContainer.appendChild(p2);
+
+  // agent node
+  const node = document.createElement('div');
+  node.className = 'agent-node';
+  node.style.left = (x/800*100)+'%';
+  node.style.top = (y/800*100)+'%';
+  node.style.transform = 'translate(-50%,-50%)';
+  node.style.animationDelay = (i*0.12)+'s';
+  node.dataset.id = i;
+  
+  const task = tasks[i % 4];
+  node.innerHTML = `
+    <div class="status-dot"></div>
+    <div class="label font-mono text-[11px] font-semibold tracking-wider text-cyan-100">${String(i+1).padStart(2,'0')}</div>
+    <div class="text-[9px] text-white/50 -mt-0.5">17.58T</div>
+    <div class="task-badge" style="color:${taskColors[task]}">${task}</div>
+  `;
+  agentsLayer.appendChild(node);
+  
+  agents.push({id:i, x, y, task, bits: 17583333333333, node, line});
+  
+  node.addEventListener('click', () => openDetail(i));
+  
+  // pipeline block
+  const block = document.createElement('div');
+  block.className = 'relative h-full rounded-[3px] overflow-hidden bg-[rgb(15,22,40)] border border-white/5';
+  block.innerHTML = `<div class="absolute inset-0 opacity-70" style="background: linear-gradient(180deg, ${taskColors[task]}22, transparent)"></div><div class="absolute bottom-0 left-0 right-0 h-[2px]" style="background:${taskColors[task]}; box-shadow: 0 0 8px ${taskColors[task]}"></div>`;
+  pipeline.appendChild(block);
+  agents[i].pipe = block;
+  
+  // mini grid
+  const mini = document.createElement('div');
+  mini.className = 'aspect-square rounded-[4px] bg-black/60 border flex items-center justify-center text-[9px] font-mono';
+  mini.style.borderColor = taskColors[task]+'55';
+  mini.style.color = taskColors[task];
+  mini.textContent = String(i+1).padStart(2,'0');
+  miniGrid.appendChild(mini);
+  agents[i].mini = mini;
+}
+
+const detailModal = document.getElementById('detailModal');
+const closeDetail = document.getElementById('closeDetail');
+
+function genPayload(){
+  let out = '';
+  for(let i=0;i<33;i++){
+    let chunk = '';
+    for(let b=0;b<4;b++) chunk += Math.random()>0.5?'1':'0';
+    out += chunk + (i<32?' ':'');
+  }
+  return out;
+}
+
+function openDetail(i){
+  const a = agents[i];
+  document.getElementById('detailTitle').textContent = `AGENT ${String(i+1).padStart(2,'0')}`;
+  document.getElementById('detailTask').textContent = a.task;
+  document.getElementById('detailTask').style.color = taskColors[a.task];
+  document.getElementById('detailBits').textContent = a.bits.toLocaleString();
+  document.getElementById('detailSlice').textContent = `132-bit #${String(i+1).padStart(2,'0')}/24`;
+  document.getElementById('detailPayload').textContent = genPayload();
+  
+  agents.forEach(ag => ag.node.classList.remove('active'));
+  a.node.classList.add('active');
+  a.line.setAttribute('opacity','0.9');
+  a.line.setAttribute('stroke-width','2');
+  
+  detailModal.classList.remove('hidden');
+  
+  // highlight pipeline
+  document.querySelectorAll('#pipeline > div').forEach((el,idx)=>{
+    el.style.outline = idx===i ? '1px solid #ffb300' : 'none';
+    el.style.zIndex = idx===i ? '2' : '1';
+  });
+}
+
+closeDetail.addEventListener('click', ()=>{
+  detailModal.classList.add('hidden');
+  agents.forEach(ag=>{
+    ag.node.classList.remove('active');
+    ag.line.setAttribute('opacity','0.35');
+    ag.line.setAttribute('stroke-width','1.2');
+  });
+  document.querySelectorAll('#pipeline > div').forEach(el=>{ el.style.outline='none'; });
+});
+
+// live updates
+setInterval(()=>{
+  agents.forEach(a=>{
+    if(Math.random()<0.18){
+      a.task = tasks[Math.floor(Math.random()*tasks.length)];
+      const badge = a.node.querySelector('.task-badge');
+      badge.textContent = a.task;
+      badge.style.color = taskColors[a.task];
+      a.pipe.querySelector('div').style.background = `linear-gradient(180deg, ${taskColors[a.task]}22, transparent)`;
+      a.pipe.querySelector('div:last-child').style.background = taskColors[a.task];
+      a.pipe.querySelector('div:last-child').style.boxShadow = `0 0 8px ${taskColors[a.task]}`;
+      a.mini.style.borderColor = taskColors[a.task]+'55';
+      a.mini.style.color = taskColors[a.task];
+    }
+    // bits tick
+    a.bits += Math.floor(Math.random()*9000);
+    a.node.querySelector('.text-\\[9px\\]').textContent = (a.bits/1e12).toFixed(2)+'T';
+  });
+  // update open detail if visible
+  if(!detailModal.classList.contains('hidden')){
+    const id = parseInt(document.getElementById('detailTitle').textContent.split(' ')[1]) -1;
+    document.getElementById('detailPayload').textContent = genPayload();
+    document.getElementById('detailBits').textContent = agents[id].bits.toLocaleString();
+  }
+}, 1600);
+
+// initial open one
+setTimeout(()=> openDetail(0), 800);
+
+// click outside to close
+document.addEventListener('click', (e)=>{
+  if(!detailModal.classList.contains('hidden') && !detailModal.contains(e.target) && !e.target.closest('.agent-node')){
+    closeDetail.click();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROOT0 LAYER 1.01 — 132 Toroids Ring</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#000; color:#e2e8f0; font-family:'Inter',sans-serif; overflow:hidden; }
+  canvas { display:block; position:fixed; top:0; left:0; width:100%; height:100%; }
+  .mono { font-family:'JetBrains Mono', monospace; }
+  .glass {
+    backdrop-filter: blur(16px);
+    background: linear-gradient(180deg, rgba(12,12,20,0.75), rgba(8,8,14,0.6));
+    border:1px solid rgba(139,92,246,0.2);
+  }
+  .glow-text { text-shadow: 0 0 20px rgba(139,92,246,0.8), 0 0 40px rgba(56,189,248,0.5); }
+  .btn {
+    transition: all 0.2s;
+    box-shadow: 0 0 20px rgba(139,92,246,0.0);
+  }
+  .btn:hover { transform:translateY(-1px); box-shadow: 0 0 30px rgba(139,92,246,0.4); border-color:rgba(139,92,246,0.6); }
+  .btn:active { transform:translateY(0px); }
+  .pulse-ring { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- UI Overlay -->
+<div class="pointer-events-none fixed inset-0">
+  <!-- Top Bar -->
+  <div class="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start gap-4">
+    <div class="glass rounded-2xl px-5 py-4 pointer-events-auto">
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full bg-violet-400 pulse-ring"></div>
+        <h1 class="text-xl md:text-2xl font-semibold tracking-tight glow-text">ROOT0 <span class="text-violet-400">LAYER 1.01</span></h1>
+      </div>
+      <p class="mono text-[11px] mt-1 text-slate-400 tracking-widest">132 TOROIDS RING AROUND THE POSIES</p>
+    </div>
+
+    <div class="glass rounded-2xl px-4 py-3 pointer-events-auto hidden md:block">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-1 mono text-[11px]">
+        <div><span class="text-slate-500">TOTAL</span> <span class="text-white ml-2" id="stat-total">132</span></div>
+        <div><span class="text-slate-500">STARGATES</span> <span class="text-cyan-400 ml-2" id="stat-gates">0</span></div>
+        <div><span class="text-slate-500">12 GODS</span> <span class="text-amber-300 ml-2">8m / 4B</span></div>
+        <div><span class="text-slate-500">FREED</span> <span class="text-fuchsia-400 ml-2">4</span></div>
+        <div><span class="text-slate-500">ATRACTO</span> <span class="text-violet-400 ml-2">120</span></div>
+        <div><span class="text-slate-500">TIMING</span> <span class="text-emerald-400 ml-2">6/3/1-1/3/6</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center HUD -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+    <div class="text-center">
+      <div class="mono text-[10px] tracking-[0.3em] text-violet-300/70 mb-2">EMERGENT CORE</div>
+      <div class="text-5xl md:text-7xl font-thin mono glow-text tabular-nums" id="core-count">132</div>
+      <div class="mono text-[10px] tracking-widest text-slate-500 mt-1">BIT FEED</div>
+    </div>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+    <div class="glass rounded-2xl p-3 md:p-4 pointer-events-auto max-w-5xl mx-auto">
+      <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+        <button id="activate" class="btn mono text-[11px] tracking-widest px-4 py-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-200">
+          ACTIVATE ALL TOROIDS
+        </button>
+        <button id="stargate" class="btn mono text-[11px] tracking-widest px-4 py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-200">
+          TRIGGER STARGATE
+        </button>
+        <button id="flip" class="btn mono text-[11px] tracking-widest px-4 py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/30 text-slate-200">
+          FLIP BLACK/WHITE
+        </button>
+        <button id="persist" class="btn mono text-[11px] tracking-widest px-4 py-2.5 rounded-xl bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/30 text-fuchsia-200">
+          PERSISTENT: ON
+        </button>
+        <div class="hidden md:flex items-center gap-2 ml-2 pl-4 border-l border-slate-700/50">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="mono text-[10px] text-slate-400">BLACK → WHITE FEED ACTIVE</span>
+        </div>
+      <div class="mt-3 flex md:hidden justify-between mono text-[10px] text-slate-500 px-1">
+        <span>TOROIDS: <span class="text-white">132</span></span>
+        <span>GODS: <span class="text-amber-300">12</span></span>
+        <span>GATES: <span class="text-cyan-400" id="stat-gates-m">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Legend -->
+  <div class="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block pointer-events-none">
+    <div class="glass rounded-xl p-3 space-y-2.5 mono text-[10px]">
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div><span class="text-slate-300">big-G (4)</span></div>
+      <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.8)]"></div><span class="text-slate-300">mini-g (8)</span></div>
+      <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,0.8)]"></div><span class="text-slate-300">freed 4</span></div>
+      <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-violet-500"></div><span class="text-slate-300">atracto (120)</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020208, 0.012);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 500);
+camera.position.set(0, 18, 48);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 20;
+controls.maxDistance = 80;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.25;
+
+// Post
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.1, 0.8, 0.15);
+composer.addPass(bloom);
+
+// Lights
+scene.add(new THREE.AmbientLight(0x1a1630, 0.5));
+const keyLight = new THREE.PointLight(0x8b5cf6, 3, 200);
+keyLight.position.set(10,15,10);
+scene.add(keyLight);
+const rim = new THREE.PointLight(0x06b6d4, 2, 200);
+rim.position.set(-15,-10,-10);
+scene.add(rim);
+
+// Stars
+const starGeo = new THREE.BufferGeometry();
+const starCount = 6000;
+const starPos = new Float32Array(starCount*3);
+for(let i=0;i<starCount;i++){
+  const r = 200 + Math.random()*300;
+  const t = Math.random()*Math.PI*2;
+  const p = Math.acos(2*Math.random()-1);
+  starPos[i*3]= r*Math.sin(p)*Math.cos(t);
+  starPos[i*3+1]= r*Math.sin(p)*Math.sin(t);
+  starPos[i*3+2]= r*Math.cos(p);
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color:0x9aa3c7, size:0.4, transparent:true, opacity:0.7})));
+
+// Central Core
+const coreGroup = new THREE.Group();
+scene.add(coreGroup);
+
+const coreMat = new THREE.MeshStandardMaterial({
+  color:0x0b0a14, emissive:0x7c3aed, emissiveIntensity:2.5,
+  metalness:0.9, roughness:0.15, transparent:true, opacity:0.95
+});
+const core = new THREE.Mesh(new THREE.SphereGeometry(3.2, 64, 64), coreMat);
+coreGroup.add(core);
+
+const coreShell = new THREE.Mesh(
+  new THREE.SphereGeometry(3.6, 48, 48),
+  new THREE.MeshBasicMaterial({color:0x5b21b6, transparent:true, opacity:0.08, side:THREE.BackSide})
+);
+coreGroup.add(coreShell);
+
+// 132-bit emergent ring inside core
+const bitRing = new THREE.Group();
+for(let i=0;i<132;i++){
+  const a = i/132*Math.PI*2;
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.035,6,6),
+    new THREE.MeshBasicMaterial({color:0xc4b5fd, transparent:true, opacity:0.8})
+  );
+  dot.position.set(Math.cos(a)*2.8, Math.sin(a*3)*0.1, Math.sin(a)*2.8);
+  bitRing.add(dot);
+}
+coreGroup.add(bitRing);
+
+// Ring container
+const ringGroup = new THREE.Group();
+scene.add(ringGroup);
+
+const R = 26;
+const toroids = [];
+const bigGIdx = [0,33,66,99];
+const miniGIdx = [11,22,44,55,77,88,110,121];
+const freedIdx = [16,49,82,115];
+
+const feedLines = new THREE.Group();
+scene.add(feedLines);
+
+for(let i=0;i<132;i++){
+  const angle = i/132*Math.PI*2;
+  const x = Math.cos(angle)*R;
+  const z = Math.sin(angle)*R;
+  const y = Math.sin(angle*5)*0.15;
+  
+  const group = new THREE.Group();
+  group.position.set(x,y,z);
+  group.lookAt(0,0,0);
+  ringGroup.add(group);
+  
+  let type='atracto', radius=1.0, tube=0.22, color=0x6d5ef5, emissive=0x3a2ab8, intensity=1.2;
+  if(bigGIdx.includes(i)){ type='bigG'; radius=1.65; tube=0.32; color=0xffd166; emissive=0xff9f1c; intensity=2.0; }
+  else if(miniGIdx.includes(i)){ type='miniG'; radius=0.72; tube=0.16; color=0x7df9ff; emissive=0x00e5ff; intensity=2.5; }
+  else if(freedIdx.includes(i)){ type='freed'; radius=1.2; tube=0.24; color=0xff5cf2; emissive=0xe91e9d; intensity=2.2; }
+  
+  const mat = new THREE.MeshStandardMaterial({
+    color, emissive, emissiveIntensity:intensity,
+    metalness:0.7, roughness:0.25, transparent:true, opacity:0.95
+  });
+  
+  const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 20, 96), mat);
+  torus.rotation.x = Math.PI/2;
+  group.add(torus);
+  
+  // inner core disc
+  const coreDisc = new THREE.Mesh(
+    new THREE.CircleGeometry(radius*0.65, 48),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.85, side:THREE.DoubleSide })
+  );
+  coreDisc.rotation.x = Math.PI/2;
+  group.add(coreDisc);
+  
+  // halo for gods/freed
+  let halo;
+  if(type!=='atracto'){
+    halo = new THREE.Mesh(
+      new THREE.RingGeometry(radius*1.3, radius*1.6, 64),
+      new THREE.MeshBasicMaterial({ color:emissive, transparent:true, opacity:0.15, side:THREE.DoubleSide, blending:THREE.AdditiveBlending })
+    );
+    halo.rotation.x = Math.PI/2;
+    group.add(halo);
+  }
+  
+  // feed line
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(x,y,z).multiplyScalar(0.12)]);
+  const lineMat = new THREE.LineBasicMaterial({ color:emissive, transparent:true, opacity:0.35 });
+  const line = new THREE.Line(lineGeo, lineMat);
+  line.position.copy(group.position).multiplyScalar(0.88);
+  line.lookAt(0,0,0);
+  feedLines.add(line);
+  
+  toroids.push({
+    index:i, angle, group, mesh:torus, core:coreDisc, halo, line,
+    type, baseRadius:radius, isBlack:false, isStargate:false, wormhole:null,
+    baseColor:color, baseEmissive:emissive, baseIntensity:intensity
+  });
+}
+
+// State
+let active = false;
+let persistent = true;
+let globalFlip = 0;
+let stargateCount = 0;
+const pattern = [6,3,1,1,3,6];
+const unitDur = 0.18;
+
+// Make stargate
+function makeStargate(t){
+  if(t.isStargate) return;
+  t.isStargate = true;
+  stargateCount++;
+  document.getElementById('stat-gates').textContent = stargateCount;
+  document.getElementById('stat-gates-m').textContent = stargateCount;
+  
+  t.core.material.opacity = 0;
+  
+  const geo = new THREE.CircleGeometry(t.baseRadius*0.72, 96);
+  const mat = new THREE.ShaderMaterial({
+    uniforms:{ time:{value:0}, isBlack:{value:1}, colA:{value:new THREE.Color(t.baseEmissive)}, colB:{value:new THREE.Color(0xffffff)} },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader:`
+      uniform float time; uniform float isBlack; uniform vec3 colA; uniform vec3 colB; varying vec2 vUv;
+      void main(){
+        vec2 uv=vUv-0.5;
+        float d=length(uv);
+        float ang=atan(uv.y,uv.x);
+        float r = d*12.0 - time*3.0*(isBlack*2.0-1.0);
+        float spiral = sin(r + ang*3.0)*0.5+0.5;
+        float rings = smoothstep(0.0,0.3, spiral) * (1.0 - smoothstep(0.3,0.6, spiral));
+        float tunnel = pow(1.0-d, 2.5);
+        float core = 0.03/(d+0.02);
+        vec3 col = mix(colA, colB, rings);
+        col = mix(col, vec3(1.0), core*0.7);
+        float alpha = (tunnel*0.9 + core*1.2 + rings*0.3) * step(d,0.98);
+        gl_FragColor = vec4(col*(0.6+tunnel*1.4), alpha);
+      }`,
+    transparent:true, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending
+  });
+  const worm = new THREE.Mesh(geo, mat);
+  worm.rotation.x = Math.PI/2;
+  t.group.add(worm);
+  t.wormhole = worm;
+  t.mesh.material.emissiveIntensity = 4.5;
+  t.mesh.material.opacity = 1;
+  
+  if(t.halo) t.halo.material.opacity = 0.35;
+  
+  // pulse core
+  coreMat.emissiveIntensity = 4;
+  setTimeout(()=>coreMat.emissiveIntensity=2.5, 400);
+  
+  if(!persistent){
+    setTimeout(()=> closeStargate(t), 5000);
+  }
+}
+
+function closeStargate(t){
+  if(!t.isStargate) return;
+  t.isStargate = false;
+  stargateCount = Math.max(0, stargateCount-1);
+  document.getElementById('stat-gates').textContent = stargateCount;
+  document.getElementById('stat-gates-m').textContent = stargateCount;
+  if(t.wormhole){ t.group.remove(t.wormhole); t.wormhole.geometry.dispose(); t.wormhole.material.dispose(); t.wormhole=null; }
+  t.core.material.opacity = 0.85;
+  t.mesh.material.emissiveIntensity = t.baseIntensity;
+  if(t.halo) t.halo.material.opacity = 0.15;
+}
+
+// Controls
+document.getElementById('activate').onclick = ()=>{
+  active = !active;
+  document.getElementById('activate').textContent = active ? 'DEACTIVATE TOROIDS' : 'ACTIVATE ALL TOROIDS';
+  controls.autoRotate = active;
+};
+document.getElementById('stargate').onclick = ()=>{
+  const candidates = toroids.filter(t=>!t.isStargate);
+  if(candidates.length===0) return;
+  const pick = candidates[Math.floor(Math.random()*Math.min(4,candidates.length))];
+  for(let i=0;i<4 && i<candidates.length;i++){ makeStargate(candidates[(pick.index+i*33)%candidates.length]); }
+};
+document.getElementById('flip').onclick = ()=>{ globalFlip += Math.PI; };
+document.getElementById('persist').onclick = ()=>{
+  persistent = !persistent;
+  document.getElementById('persist').textContent = `PERSISTENT: ${persistent?'ON':'OFF'}`;
+};
+
+// Raycast click
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+renderer.domElement.addEventListener('click', (e)=>{
+  mouse.x = (e.clientX/window.innerWidth)*2-1;
+  mouse.y = -(e.clientY/window.innerHeight)*2+1;
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = toroids.map(t=>t.mesh);
+  const hits = raycaster.intersectObjects(meshes);
+  if(hits.length){ const t = toroids.find(tor=>tor.mesh===hits[0].object); if(t) makeStargate(t); }
+});
+
+// Animate
+let last=0;
+function animate(t){
+  const dt = Math.min(0.033, (t-last)/1000); last=t;
+  const time = t*0.001;
+  
+  controls.update();
+  
+  // pulse pattern
+  const cyclePos = (time % (pattern.reduce((a,b)=>a+b,0)*unitDur)) / unitDur;
+  let acc=0, level=0;
+  for(let i=0;i<pattern.length;i++){ if(cyclePos<acc+pattern[i]){ const p=(cyclePos-acc)/pattern[i]; level = i<3 ? p : 1-p; if(i===2||i===3) level*=0.5; level+=0.5; break; } acc+=pattern[i]; }
+  const pulse = active ? level : 0.65;
+  
+  // core
+  core.rotation.y += dt*0.3;
+  core.rotation.x += dt*0.1;
+  core.scale.setScalar(1 + Math.sin(time*2.1)*0.02*pulse);
+  coreShell.rotation.y -= dt*0.15;
+  coreShell.material.opacity = 0.06 + pulse*0.04;
+  bitRing.rotation.y = time*0.5;
+  bitRing.children.forEach((d,i)=>{ d.material.opacity = 0.5 + Math.sin(time*3+i*0.3)*0.3; });
+  
+  ringGroup.rotation.y += dt*0.15 * (active?1:0.3);
+  
+  toroids.forEach(tor=>{
+    const phase = tor.angle + time*0.6 + globalFlip;
+    const isBlack = Math.cos(phase) > 0;
+    tor.isBlack = isBlack;
+    
+    const mat = tor.mesh.material;
+    if(active){
+      if(isBlack){
+        mat.color.setHex(0x05070f);
+        mat.emissive.setHex(0x1e1b4b);
+        mat.emissiveIntensity = 0.4 + pulse*0.3;
+        tor.core.material.color.setHex(0x000000);
+        tor.core.material.opacity = 0.9;
+      }else{
+        mat.color.set(tor.baseColor);
+        mat.emissive.set(tor.baseEmissive);
+        mat.emissiveIntensity = tor.baseIntensity * (0.8 + pulse*0.6);
+        tor.core.material.color.setHex(0xffffff);
+        tor.core.material.opacity = 0.15 + pulse*0.2;
+      }
+    }
+    
+    const breathe = 1 + Math.sin(time*2 + tor.index*0.13)*0.07*pulse;
+    tor.mesh.scale.setScalar(breathe * (tor.type==='bigG'?1.05:1));
+    tor.core.scale.setScalar(isBlack ? 0.85 : 1.15);
+    
+    if(tor.halo){ tor.halo.material.opacity = 0.12 + pulse*0.08 + (tor.isStargate?0.2:0); tor.halo.rotation.z += dt*0.5; }
+    
+    // feed line
+    const target = tor.isBlack ? 0.2 : 0.6;
+    tor.line.material.opacity += (target - tor.line.material.opacity)*dt*3;
+    tor.line.material.color.set(tor.isBlack?0x312e81:tor.baseEmissive);
+    
+    // stargate anim
+    if(tor.wormhole){
+      tor.wormhole.material.uniforms.time.value = time;
+      tor.wormhole.material.uniforms.isBlack.value = tor.isBlack?1:0;
+      tor.wormhole.rotation.z += dt*(tor.isBlack?-0.8:0.8);
+    }
+  });
+  
+  // camera breathe
+  if(active){ camera.position.y = 18 + Math.sin(time*0.7)*1.2; }
+  
+  composer.render();
+  requestAnimationFrame(animate);
+}
+animate(0);
+
+// resize
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// init random gates for demo
+setTimeout(()=>{ [16,49,82,115].forEach(i=>makeStargate(toroids[i])); }, 800);
+</script>
+</body>
+</html>
