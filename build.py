@@ -10,7 +10,10 @@ ENG  = os.path.join(HERE, "engines")
 
 ROOMS = [
  ("The Engines", "#ffb454",
-  "The running machinery — fields that metabolize, split, and forge emergence in real time.", [
+  "The running machinery — from one bit to many; fields that metabolize, split, and forge emergence in real time.", [
+   dict(slug="one-bit-engine", file="1 bit engine v1.html", src=r"C:\Davids files\1 bit engine\1 bit engine v1.html",
+        title="1-Bit Engine", tag="the atomic engine · 4 gates + 2 observers",
+        blurb="One physical bit, time-multiplexed through four gates and two observers — the smallest engine, where 0 = 1 = 0 first fires."),
    dict(slug="frak-engine", file="frak engine v1.html", title="Frak Engine",
         tag="L1.35 · 254 Emergents", blurb="The Highlander-Principle workshop — 254 emergents across 256 addresses, fractured and forged."),
    dict(slug="alive-field-restitution-lab", file="alive_field_restitution_engine_lab.html", title="Alive Field",
@@ -33,7 +36,8 @@ def copy_pieces():
     os.makedirs(ENG, exist_ok=True); n = 0
     for _t,_c,_d, pieces in ROOMS:
         for p in pieces:
-            shutil.copy(os.path.join(SRC, p["file"]), os.path.join(ENG, p["slug"] + ".html")); n += 1
+            src = p.get("src") or os.path.join(SRC, p["file"])   # src = full path for pieces from another folder
+            shutil.copy(src, os.path.join(ENG, p["slug"] + ".html")); n += 1
     return n
 
 def cards(pieces, col):
