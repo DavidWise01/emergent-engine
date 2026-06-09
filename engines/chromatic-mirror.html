@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Chromatic Mirror - Voice + 36-Node Sync</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Syne:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; }
+  html,body { height:100%; background:#000; }
+  body { font-family:'JetBrains Mono', ui-monospace, monospace; }
+  h1 { font-family:'Syne', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width:0; height:0; }
+  input[type=range] { -webkit-appearance:none; height:4px; background:linear-gradient(90deg,rgba(228,255,0,0.2),rgba(228,255,0,0.6)); border-radius:2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#e4ff00; box-shadow:0 0 10px #e4ff00,0 0 20px rgba(228,255,0,0.6); cursor:pointer; border:2px solid #000; }
+  input[type=range]::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:#e4ff00; box-shadow:0 0 10px #e4ff00; cursor:pointer; border:2px solid #000; }
+  .neon { text-shadow:0 0 6px rgba(228,255,0,0.9),0 0 20px rgba(228,255,0,0.5),0 0 40px rgba(228,255,0,0.3); }
+  .grid-bg { background-image: radial-gradient(rgba(228,255,0,0.08) 1px, transparent 1px); background-size:24px 24px; }
+  .glass { backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); }
+</style>
+</head>
+<body class="bg-[#020202] text-[#e6ff00] overflow-hidden select-none">
+<div class="relative w-screen h-screen">
+  <!-- ambient -->
+  <div class="absolute inset-0">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#1a1a00_0%,_#000_60%)] opacity-60"></div>
+    <div class="absolute inset-0 grid-bg opacity-[0.15]"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full blur-[120px] pointer-events-none" style="background:radial-gradient(circle,rgba(228,255,0,0.15),transparent 60%)"></div>
+  </div>
+
+  <header class="relative z-30 flex items-center justify-between px-4 md:px-8 pt-5">
+    <h1 class="neon text-[18px] md:text-[26px] tracking-[0.18em] font-semibold">
+      CHROMATIC MIRROR <span class="opacity-60 font-light tracking-wider">— VOICE + 36-NODE SYNC</span>
+    </h1>
+    <div class="flex items-center gap-2">
+      <button id="micBtn" class="group relative px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-[#e4ff00]/30 bg-black/60 hover:bg-[#e4ff00]/10 transition text-[11px] md:text-xs tracking-widest">
+        <span class="opacity-80 group-hover:opacity-100">MIC OFF</span>
+      </button>
+      <button id="camBtn" class="group relative px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-[#e4ff00]/30 bg-black/60 hover:bg-[#e4ff00]/10 transition text-[11px] md:text-xs tracking-widest">
+        <span class="opacity-80 group-hover:opacity-100">CAM OFF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- central stage -->
+  <main class="relative z-20 flex items-center justify-center">
+    <div class="relative mt-4 md:mt-2 w-[min(92vw,740px)] aspect-square">
+      <!-- glow -->
+      <div id="mirrorGlow" class="absolute -inset-16 rounded-full blur-3xl transition-opacity duration-300" style="background:radial-gradient(circle,rgba(228,255,0,0.35) 0%, rgba(228,255,0,0.08) 40%, transparent 70%); opacity:.35"></div>
+      <!-- mirror -->
+      <div class="absolute inset-0 rounded-full overflow-hidden border border-[#e4ff00]/20 shadow-[0_0_80px_rgba(228,255,0,0.08),inset_0_0_60px_rgba(0,0,0,0.9)] bg-black/80">
+        <canvas id="mirror" class="absolute inset-0 w-full h-full"></canvas>
+        <canvas id="lattice" class="absolute inset-0 w-full h-full mix-blend-screen opacity-90"></canvas>
+        <!-- vignette -->
+        <div class="absolute inset-0 rounded-full pointer-events-none" style="box-shadow:inset 0 0 120px #000,inset 0 0 40px rgba(0,0,0,0.9)"></div>
+        <!-- scanlines -->
+        <div class="absolute inset-0 rounded-full opacity-[0.07] mix-blend-screen pointer-events-none" style="background:repeating-linear-gradient(transparent 0 2px, rgba(228,255,0,0.25) 2px 3px)"></div>
+      </div>
+      <!-- reticle -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[94%] h-[94%] rounded-full border border-[#e4ff00]/[0.08]"></div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] rounded-full border border-[#e4ff00]/[0.06]"></div>
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#e4ff00]/20 to-transparent"></div>
+        <div class="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#e4ff00]/20 to-transparent"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- bottom panels -->
+  <footer class="relative z-30 px-3 md:px-8 pb-4 md:pb-6 mt-2 md:mt-0">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 items-end">
+      <!-- waveform -->
+      <div class="order-2 md:order-1">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-[10px] tracking-[0.2em] opacity-70">VOICE WAVEFORM</p>
+          <p id="voiceLevel" class="text-[10px] font-mono text-[#e4ff00]/70">- -</p>
+        </div>
+        <div class="relative h-[84px] rounded-xl overflow-hidden border border-[#e4ff00]/15 bg-black/70 glass">
+          <canvas id="wave" class="w-full h-full"></canvas>
+          <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,transparent,rgba(228,255,0,0.05))"></div>
+        </div>
+      </div>
+
+      <!-- controls -->
+      <div class="order-1 md:order-2">
+        <div class="rounded-2xl border border-[#e4ff00]/15 bg-black/60 glass p-3 md:p-4 shadow-[0_0_40px_rgba(228,255,0,0.05)]">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <div class="flex justify-between mb-1">
+                <label class="text-[10px] tracking-widest opacity-70">HEARTBEAT</label>
+                <span id="bpmVal" class="text-[11px] font-mono text-[#e4ff00]">60 BPM</span>
+              </div>
+              <input id="bpm" type="range" min="30" max="180" value="60" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <label class="text-[10px] tracking-widest opacity-70">SENSITIVITY</label>
+                <span id="sensVal" class="text-[11px] font-mono text-[#e4ff00]">1.5x</span>
+              </div>
+              <input id="sens" type="range" min="0.2" max="3" step="0.1" value="1.5" class="w-full">
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 rounded-full bg-[#e4ff00] animate-pulse shadow-[0_0_8px_#e4ff00]"></div>
+              <p class="text-[10px] opacity-60 tracking-wide">SYNC ENGINE ACTIVE</p>
+            </div>
+            <p class="text-[10px] opacity-50">36-NODE HEX ARRAY • BN LATTICE</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- nodes -->
+      <div class="order-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-[10px] tracking-[0.2em] opacity-70">36-NODE HEX ARRAY</p>
+          <p id="nodePhase" class="text-[10px] font-mono text-[#e4ff00]/70">IDLE</p>
+        </div>
+        <div class="relative h-[84px] rounded-xl overflow-hidden border border-[#e4ff00]/15 bg-black/70 glass">
+          <canvas id="nodes" class="w-full h-full"></canvas>
+          <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)"></div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <video id="video" autoplay muted playsinline class="hidden"></video>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const mirror = $('mirror'), lattice = $('lattice'), wave = $('wave'), nodesC = $('nodes');
+  const mctx = mirror.getContext('2d', { alpha: true });
+  const lctx = lattice.getContext('2d', { alpha: true });
+  const wctx = wave.getContext('2d', { alpha: true });
+  const nctx = nodesC.getContext('2d', { alpha: true });
+  const video = $('video');
+  const mirrorGlow = $('mirrorGlow');
+
+  let audioCtx = null, analyser = null, micStream = null, dataArray = null, freqArray = null;
+  let micActive = false, camActive = false;
+  let voiceAmp = 0, voiceTarget = 0, voiceFreq = 0;
+  let sensitivity = 1.5, bpm = 60;
+  let nodes = [];
+  let nodeActivity = 0;
+  let lastT = 0;
+
+  const TAU = Math.PI * 2;
+
+  function fitCanvas(c, ctx) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = c.clientWidth, h = c.clientHeight;
+    if (c.width !== Math.floor(w * dpr) || c.height !== Math.floor(h * dpr)) {
+      c.width = Math.floor(w * dpr);
+      c.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+  }
+  function resizeAll() {
+    [[mirror,mctx],[lattice,lctx],[wave,wctx],[nodesC,nctx]].forEach(([c,ctx])=>fitCanvas(c,ctx));
+    initNodes();
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(resizeAll));
+
+  function initNodes() {
+    nodes = [];
+    const w = nodesC.clientWidth, h = nodesC.clientHeight;
+    const cx = w/2, cy = h/2 + 2;
+    const spacing = Math.min(w, h) * 0.108;
+    let idx = 0;
+    for (let ring=1; ring<=3; ring++) {
+      const count = ring*6;
+      const r = ring * spacing;
+      for (let i=0;i<count;i++) {
+        const a = i * TAU / count - Math.PI/2;
+        nodes.push({
+          x: cx + Math.cos(a)*r,
+          y: cy + Math.sin(a)*r,
+          idx: idx++,
+          phase: (Math.random()-0.5)*0.12,
+          pulse: 0
+        });
+      }
+    }
+  }
+
+  // Controls
+  $('bpm').addEventListener('input', e => {
+    bpm = +e.target.value;
+    $('bpmVal').textContent = bpm + ' BPM';
+  });
+  $('sens').addEventListener('input', e => {
+    sensitivity = +e.target.value;
+    $('sensVal').textContent = sensitivity.toFixed(1) + 'x';
+  });
+
+  async function startMic() {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1, sampleRate:48000 }, video:false });
+      const src = audioCtx.createMediaStreamSource(micStream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.82;
+      src.connect(analyser);
+      dataArray = new Uint8Array(analyser.fftSize);
+      freqArray = new Uint8Array(analyser.frequencyBinCount);
+      micActive = true;
+      $('micBtn').classList.add('bg-[#e4ff00]/15','border-[#e4ff00]/60');
+      $('micBtn').innerHTML = '<span class="opacity-100">MIC ● LIVE</span>';
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+    } catch (e) {
+      console.warn(e);
+      alert('Microphone permission denied');
+    }
+  }
+  function stopMic() {
+    if (micStream) micStream.getTracks().forEach(t=>t.stop());
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+    analyser = null; micActive = false;
+    $('micBtn').classList.remove('bg-[#e4ff00]/15','border-[#e4ff00]/60');
+    $('micBtn').innerHTML = '<span class="opacity-80">MIC OFF</span>';
+    voiceAmp = voiceTarget = 0;
+  }
+  $('micBtn').onclick = () => micActive ? stopMic() : startMic();
+
+  async function startCam() {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { width:{ideal:1280}, height:{ideal:720}, facingMode:'user' }, audio:false });
+      video.srcObject = s;
+      await video.play();
+      camActive = true;
+      $('camBtn').classList.add('bg-[#e4ff00]/15','border-[#e4ff00]/60');
+      $('camBtn').innerHTML = '<span class="opacity-100">CAM ● LIVE</span>';
+    } catch(e) {
+      console.warn(e);
+      alert('Camera permission denied');
+    }
+  }
+  function stopCam() {
+    if (video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
+    video.srcObject = null; camActive = false;
+    $('camBtn').classList.remove('bg-[#e4ff00]/15','border-[#e4ff00]/60');
+    $('camBtn').innerHTML = '<span class="opacity-80">CAM OFF</span>';
+  }
+  $('camBtn').onclick = () => camActive ? stopCam() : startCam();
+
+  function hexPath(ctx, x, y, r) {
+    ctx.beginPath();
+    for (let i=0;i<6;i++) {
+      const a = TAU*i/6 - Math.PI/6;
+      const px = x + Math.cos(a)*r, py = y + Math.sin(a)*r;
+      if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+  }
+
+  function drawMirror(t) {
+    fitCanvas(mirror, mctx);
+    const W = mirror.clientWidth, H = mirror.clientHeight;
+    const cx = W/2, cy = H/2;
+    const baseR = Math.min(W,H) * 0.42;
+
+    mctx.clearRect(0,0,W,H);
+
+    const combined = Math.min(1, voiceAmp * sensitivity * 0.85 + nodeActivity * 0.55);
+    const breathe = Math.sin(t * 0.001 * (bpm/60) * TAU) * 0.018;
+    const scale = 1 + breathe + combined * 0.11;
+    const disp = (voiceAmp*26 + voiceFreq*6) * sensitivity + nodeActivity * 13;
+    const glow = 18 + combined * 95;
+
+    mctx.save();
+    mctx.translate(cx, cy);
+    mctx.scale(scale, scale);
+
+    // circular clip
+    mctx.beginPath();
+    mctx.arc(0,0,baseR,0,TAU);
+    mctx.clip();
+
+    // base
+    mctx.fillStyle = '#040404';
+    mctx.fillRect(-W, -H, W*2, H*2);
+
+    if (camActive && video.readyState >= 2) {
+      const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+      const vr = vw/vh;
+      let dw = baseR*2.35, dh = dw / vr;
+      if (dh < baseR*2.35) { dh = baseR*2.35; dw = dh*vr; }
+
+      mctx.globalAlpha = 0.97;
+      mctx.filter = 'contrast(1.15) saturate(1.25)';
+      mctx.drawImage(video, -dw/2, -dh/2, dw, dh);
+      mctx.filter = 'none';
+
+      mctx.globalCompositeOperation = 'screen';
+      mctx.globalAlpha = 0.68 + combined*0.15;
+      mctx.filter = 'hue-rotate(-25deg) saturate(2.2) brightness(1.05)';
+      mctx.drawImage(video, -dw/2 - disp*0.85, -dh/2 - disp*0.15, dw, dh);
+      mctx.filter = 'hue-rotate(70deg) saturate(2) brightness(1.05)';
+      mctx.drawImage(video, -dw/2 + disp*0.85, -dh/2 + disp*0.15, dw, dh);
+      mctx.filter = 'hue-rotate(175deg) saturate(1.8) brightness(1.1)';
+      mctx.globalAlpha = 0.5;
+      mctx.drawImage(video, -dw/2, -dh/2 + disp*0.35, dw, dh);
+      mctx.filter = 'none';
+      mctx.globalCompositeOperation = 'source-over';
+      mctx.globalAlpha = 1;
+
+      // fractured overlay
+      mctx.globalCompositeOperation = 'overlay';
+      mctx.globalAlpha = 0.09 + voiceAmp*0.22;
+      mctx.strokeStyle = '#e4ff00';
+      mctx.lineWidth = 0.7;
+      for (let a=0; a<TAU; a+=TAU/16) {
+        mctx.beginPath();
+        mctx.moveTo(Math.cos(a)*baseR*0.12, Math.sin(a)*baseR*0.12);
+        mctx.lineTo(Math.cos(a+disp*0.004)*baseR*1.02, Math.sin(a+disp*0.004)*baseR*1.02);
+        mctx.stroke();
+      }
+      mctx.globalCompositeOperation = 'source-over';
+      mctx.globalAlpha = 1;
+    } else {
+      // abstract chromatic plasma
+      for (let i=0;i<3;i++) {
+        const off = (i-1) * disp * 0.45;
+        const hue = 52 + i*28 + voiceFreq*45 + nodeActivity*22 + t*0.008;
+        const grd = mctx.createRadialGradient(off*0.6, Math.sin(t*0.001+i)*disp*0.12, baseR*0.08, 0, 0, baseR*1.25);
+        grd.addColorStop(0, `hsla(${hue},100%,${66+combined*12}%,0.92)`);
+        grd.addColorStop(0.45, `hsla(${hue+18},100%,60%,${0.48 + voiceAmp*0.25})`);
+        grd.addColorStop(1, `hsla(${hue+40},100%,52%,0)`);
+        mctx.globalCompositeOperation = 'screen';
+        mctx.globalAlpha = 0.93;
+        mctx.fillStyle = grd;
+        mctx.beginPath();
+        mctx.arc(off*0.7, Math.cos(t*0.0007+i)*disp*0.1, baseR*1.08, 0, TAU);
+        mctx.fill();
+      }
+      mctx.globalCompositeOperation = 'source-over';
+      mctx.globalAlpha = 1;
+
+      // spectral shards
+      mctx.globalAlpha = 0.16 + voiceAmp*0.3 + nodeActivity*0.12;
+      mctx.strokeStyle = '#e4ff00';
+      mctx.lineWidth = 1;
+      const shards = 24;
+      for (let s=0; s<shards; s++) {
+        const a = s * TAU / shards + t*0.0002;
+        const r1 = baseR * (0.15 + Math.random()*0.15);
+        const r2 = baseR * (0.75 + Math.random()*0.28);
+        mctx.beginPath();
+        mctx.moveTo(Math.cos(a)*r1, Math.sin(a)*r1);
+        mctx.lineTo(Math.cos(a+0.02)*r2, Math.sin(a+0.02)*r2);
+        mctx.stroke();
+      }
+    }
+
+    mctx.restore();
+
+    // outer ring glow
+    mctx.save();
+    mctx.translate(cx,cy);
+    mctx.shadowColor = '#e4ff00';
+    mctx.shadowBlur = glow;
+    mctx.strokeStyle = `rgba(228,255,0,${0.38 + combined*0.38})`;
+    mctx.lineWidth = 2;
+    mctx.beginPath();
+    mctx.arc(0,0, baseR*scale, 0, TAU);
+    mctx.stroke();
+    mctx.shadowBlur = 0;
+    mctx.strokeStyle = `rgba(228,255,0,0.12)`;
+    mctx.lineWidth = 1;
+    mctx.beginPath();
+    mctx.arc(0,0, baseR*scale*1.035, 0, TAU);
+    mctx.stroke();
+    mctx.restore();
+
+    mirrorGlow.style.opacity = String(0.28 + combined*0.42);
+    mirrorGlow.style.transform = `scale(${0.92 + scale*0.12 + combined*0.1})`;
+  }
+
+  function drawLattice(t) {
+    fitCanvas(lattice, lctx);
+    const W = lattice.clientWidth, H = lattice.clientHeight;
+    const cx = W/2, cy = H/2;
+    const R = Math.min(W,H)*0.44;
+
+    lctx.clearRect(0,0,W,H);
+    lctx.save();
+    lctx.translate(cx,cy);
+    lctx.rotate(t * 0.00006);
+
+    const hexSize = 22 + nodeActivity*9 + voiceAmp*14;
+    const wavePhase = (t * 0.001 * (bpm/60)) % 1;
+    const waveR = wavePhase * R * 1.15;
+
+    lctx.lineCap = 'round';
+    for (let q=-9; q<=9; q++) {
+      for (let r=-9; r<=9; r++) {
+        const x = hexSize * Math.sqrt(3) * (q + r/2);
+        const y = hexSize * 1.5 * r;
+        const d = Math.hypot(x,y);
+        if (d > R*1.08) continue;
+        const proximity = Math.max(0, 1 - Math.abs(d - waveR)/38);
+        const a = 0.05 + proximity*0.62 + nodeActivity*0.18 + voiceAmp*0.22;
+        lctx.strokeStyle = `rgba(228,255,0,${a})`;
+        lctx.lineWidth = proximity > 0.5 ? 1.4 : 0.8;
+        if (proximity > 0.35) {
+          lctx.shadowColor = '#e4ff00';
+          lctx.shadowBlur = 10 + proximity*12;
+        } else {
+          lctx.shadowBlur = 0;
+        }
+        hexPath(lctx, x, y, hexSize*0.46);
+        lctx.stroke();
+      }
+    }
+    lctx.restore();
+  }
+
+  function drawWave() {
+    fitCanvas(wave, wctx);
+    const W = wave.clientWidth, H = wave.clientHeight;
+    wctx.clearRect(0,0,W,H);
+
+    // grid
+    wctx.globalAlpha = 0.08;
+    wctx.strokeStyle = '#e4ff00';
+    wctx.lineWidth = 1;
+    wctx.beginPath();
+    for (let y=0; y<=H; y+=H/4) { wctx.moveTo(0,y+0.5); wctx.lineTo(W,y+0.5); }
+    wctx.stroke();
+    wctx.globalAlpha = 1;
+
+    wctx.shadowColor = '#e4ff00';
+    wctx.shadowBlur = 12;
+    wctx.strokeStyle = '#e4ff00';
+    wctx.lineWidth = 2;
+    wctx.beginPath();
+
+    if (micActive && analyser) {
+      analyser.getByteTimeDomainData(dataArray);
+      analyser.getByteFrequencyData(freqArray);
+      // compute rms
+      let sum = 0;
+      for (let i=0;i<dataArray.length;i++){ const v=(dataArray[i]-128)/128; sum+=v*v; }
+      voiceTarget = Math.min(1, Math.sqrt(sum/dataArray.length)*2.2);
+      voiceAmp = voiceAmp*0.78 + voiceTarget*0.22;
+      // freq centroid
+      let fsum=0, wsum=0;
+      for (let i=0;i<freqArray.length;i++){ fsum += i*freqArray[i]; wsum += freqArray[i]; }
+      voiceFreq = wsum ? (fsum/wsum)/freqArray.length : 0;
+
+      const step = W / dataArray.length;
+      for (let i=0;i<dataArray.length;i++){
+        const x = i*step;
+        const y = (dataArray[i]/255)*H;
+        if (i===0) wctx.moveTo(x,y); else wctx.lineTo(x,y);
+      }
+      $('voiceLevel').textContent = (voiceAmp*100).toFixed(0) + '%';
+    } else {
+      voiceAmp *= 0.92; voiceFreq *= 0.94;
+      const mid = H*0.5;
+      for (let x=0; x<=W; x+=2) {
+        const y = mid + Math.sin((x+lastT*0.1)*0.04)*6 + Math.sin((x*0.02+lastT*0.003))*2;
+        if (x===0) wctx.moveTo(x,y); else wctx.lineTo(x,y);
+      }
+      $('voiceLevel').textContent = '--';
+    }
+    wctx.stroke();
+    wctx.shadowBlur = 0;
+
+    // level bar
+    const lvl = Math.max(0.02, voiceAmp);
+    wctx.fillStyle = 'rgba(228,255,0,0.15)';
+    wctx.fillRect(0, H-3, W*lvl, 3);
+  }
+
+  function drawNodes(t) {
+    fitCanvas(nodesC, nctx);
+    const W = nodesC.clientWidth, H = nodesC.clientHeight;
+    nctx.clearRect(0,0,W,H);
+
+    const beat = (t * 0.001 * (bpm/60));
+    let sumPulse = 0;
+
+    // update pulses sequential around hex
+    nodes.forEach(n => {
+      const phase = (beat + n.idx * (1/36) + n.phase) % 1;
+      const p = Math.pow(Math.max(0, Math.sin(phase*TAU)), 2.8);
+      n.pulse = p;
+      sumPulse += p;
+    });
+    nodeActivity = nodeActivity*0.7 + (sumPulse/nodes.length)*0.3;
+
+    // connections
+    nctx.lineWidth = 1;
+    for (let i=0;i<nodes.length;i++){
+      for (let j=i+1;j<nodes.length;j++){
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
+        if (d < Math.min(W,H)*0.13) {
+          const alpha = (a.pulse + b.pulse)*0.18 + 0.04 + voiceAmp*0.05;
+          nctx.strokeStyle = `rgba(228,255,0,${alpha})`;
+          nctx.beginPath(); nctx.moveTo(a.x,a.y); nctx.lineTo(b.x,b.y); nctx.stroke();
+        }
+      }
+    }
+
+    // nodes
+    nodes.forEach(n=>{
+      const r = 2.2 + n.pulse*5.2 + voiceAmp*3.5;
+      nctx.shadowColor = '#e4ff00';
+      nctx.shadowBlur = 6 + n.pulse*18 + voiceAmp*10;
+      nctx.fillStyle = `rgba(228,255,0,${0.28 + n.pulse*0.72})`;
+      nctx.beginPath(); nctx.arc(n.x, n.y, r, 0, TAU); nctx.fill();
+    });
+    nctx.shadowBlur = 0;
+
+    const activeCount = nodes.filter(n=>n.pulse>0.6).length;
+    $('nodePhase').textContent = micActive || nodeActivity>0.01 ? `${activeCount}/36 PULSE` : 'IDLE';
+  }
+
+  function tick(ts) {
+    lastT = ts;
+    drawMirror(ts);
+    drawLattice(ts);
+    drawWave();
+    drawNodes(ts);
+    requestAnimationFrame(tick);
+  }
+
+  // init
+  resizeAll();
+  requestAnimationFrame(tick);
+
+  // hint: start mic on first interaction for iOS
+  window.addEventListener('touchstart', () => { if (audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }, { once:true });
+})();
+</script>
+</body>
+</html>

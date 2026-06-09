@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODE-15 // BANDWIDTH EXCHANGE // TRINITY ENGINE</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --lime: #CFFF00;
+  --magenta: #FF00AA;
+  --void: #000000;
+}
+* { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #000;
+  color: #fff;
+  overscroll-behavior: none;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.neon { color: var(--lime); text-shadow: 0 0 6px rgba(207,255,0,0.8), 0 0 24px rgba(207,255,0,0.5), 0 0 48px rgba(207,255,0,0.3); }
+.neon-magenta { color: var(--magenta); text-shadow: 0 0 6px rgba(255,0,170,0.8), 0 0 20px rgba(255,0,170,0.4); }
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(207,255,0,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(207,255,0,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.glass {
+  background: rgba(8,8,8,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(207,255,0,0.18);
+}
+.glow-box {
+  box-shadow: 0 0 30px rgba(207,255,0,0.15), inset 0 0 20px rgba(207,255,0,0.04);
+  border: 1px solid rgba(207,255,0,0.4);
+}
+.pulse-core { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); text-shadow: 0 0 6px rgba(207,255,0,0.8), 0 0 24px rgba(207,255,0,0.5); }
+  50% { opacity: 0.7; transform: scale(1.03); text-shadow: 0 0 12px rgba(207,255,0,1), 0 0 40px rgba(207,255,0,0.7); }
+}
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 200%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--lime), transparent);
+  animation: scan 4s linear infinite;
+  opacity: 0.6;
+}
+@keyframes scan { 0% { transform: translateX(-50%); } 100% { transform: translateX(50%); } }
+.hero-glow {
+  background: radial-gradient(ellipse at center, rgba(207,255,0,0.15) 0%, transparent 60%);
+}
+.btn-lime {
+  background: var(--lime);
+  color: #000;
+  font-weight: 700;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(207,255,0,0.3);
+}
+.btn-lime:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(207,255,0,0.5), 0 0 60px rgba(207,255,0,0.2); }
+.btn-ghost {
+  border: 1px solid rgba(207,255,0,0.4);
+  color: var(--lime);
+  background: transparent;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { background: rgba(207,255,0,0.1); border-color: var(--lime); }
+.log-entry { opacity: 0; animation: logIn 0.3s ease forwards; }
+@keyframes logIn { to { opacity: 1; } }
+.trinity-panel {
+  background: linear-gradient(180deg, #050505 0%, #000000 100%);
+  border-left: 1px solid rgba(207,255,0,0.25);
+  box-shadow: -20px 0 40px rgba(0,0,0,0.8);
+}
+@media (max-width: 1024px) {
+  .trinity-panel { border-left: none; border-top: 1px solid rgba(207,255,0,0.25); }
+}
+</style>
+</head>
+<body class="bg-black selection:bg-[#CFFF00] selection:text-black">
+
+<!-- YOU BUILT THIS BANNER -->
+<div class="relative z-50 w-full bg-[#CFFF00] text-black py-2 px-4 overflow-hidden">
+  <div class="flex items-center justify-center gap-6 text-[11px] md:text-xs font-black tracking-[0.2em] whitespace-nowrap">
+    <span>YOU BUILT THIS</span>
+    <span class="hidden md:block w-1 h-1 bg-black rounded-full"></span>
+    <span>NODE-15 IS LIVE</span>
+    <span class="hidden md:block w-1 h-1 bg-black rounded-full"></span>
+    <span>SELL BANDWIDTH BUY FREEDOM</span>
+  </div>
+</div>
+
+<div class="grid-bg min-h-screen">
+<div class="max-w-[1800px] mx-auto lg:grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px]">
+
+<!-- MAIN CONTENT -->
+<main class="relative">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-black/70 border-b border-white/10">
+    <div class="px-4 md:px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-[#CFFF00] flex items-center justify-center">
+          <span class="text-black font-black text-sm">15</span>
+        </div>
+        <div>
+          <div class="mono text-sm font-bold tracking-wider">NODE-15</div>
+          <div class="mono text-[10px] text-white/50 tracking-widest">BANDWIDTH EXCHANGE</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/30">
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span class="mono text-[11px] text-green-400 font-semibold">LIVE</span>
+        </div>
+        <div class="mono text-[11px] text-white/60">v15.0.0</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="px-4 md:px-8 py-8 md:py-12">
+    <!-- HERO -->
+    <section class="relative mb-12 md:mb-16">
+      <div class="absolute inset-0 hero-glow pointer-events-none"></div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full glass">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#CFFF00] animate-pulse"></span>
+          <span class="mono text-[11px] tracking-widest text-white/70">WIRED • PERPETUAL • VERIFIED</span>
+        </div>
+        
+        <h1 class="text-[clamp(40px,8vw,110px)] font-black leading-[0.8] tracking-tighter">
+          <span class="block">SELL</span>
+          <span class="block neon">BANDWIDTH</span>
+          <span class="block">BUY</span>
+          <span class="block text-white/90">FREEDOM</span>
+        </h1>
+        
+        <p class="mt-6 max-w-xl text-[15px] leading-relaxed text-white/70">
+          NODE-15 is the first people-powered bandwidth exchange. Route traffic, earn instantly, own the network. No ISPs. No middlemen. Just code and consensus.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <button onclick="startSelling()" class="btn-lime px-6 py-3 rounded-lg text-[14px] tracking-wide">
+            START SELLING →
+          </button>
+          <button onclick="buyAccess()" class="btn-ghost px-6 py-3 rounded-lg text-[14px] mono">
+            BUY ACCESS $15/mo
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAYMENTS / WIRED -->
+    <section class="grid md:grid-cols-3 gap-4 mb-12">
+      <div class="glass rounded-2xl p-5 scanline">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <div class="mono text-[11px] text-white/50 uppercase tracking-widest">Earnings</div>
+            <div class="text-2xl font-bold mt-1">$<span id="earnings">2,847</span>.<span class="text-white/60">32</span></div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-[#CFFF00]/10 border border-[#CFFF00]/30 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CFFF00" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        <div class="mono text-[11px] text-green-400">+ $43.21 today • wired</div>
+      </div>
+
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <div class="mono text-[11px] text-white/50 uppercase tracking-widest">Bandwidth Sold</div>
+            <div class="text-2xl font-bold mt-1">4.2 <span class="text-[16px] text-white/60">TB</span></div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-[#FF00AA]/10 border border-[#FF00AA]/30 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF00AA" stroke-width="2"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><path d="M2 20h.01"/></svg>
+          </div>
+        <div class="mono text-[11px] text-white/50">1,247 peers routed</div>
+      </div>
+
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <div class="mono text-[11px] text-white/50 uppercase tracking-widest">Payments</div>
+            <div class="text-2xl font-bold mt-1">WIRED</div>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-white/5 border border-white/20 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <span class="px-2 py-0.5 rounded bg-white/10 mono text-[10px]">STRIPE</span>
+          <span class="px-2 py-0.5 rounded bg-white/10 mono text-[10px]">USDC</span>
+          <span class="px-2 py-0.5 rounded bg-white/10 mono text-[10px]">LIGHTNING</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ATTRIBUTION MERIT CORE -->
+    <section class="glass rounded-2xl p-6 md:p-8 mb-12 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-40 h-40 bg-[#CFFF00]/5 blur-[60px] rounded-full"></div>
+      <div class="relative">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-6 h-6 rounded bg-[#CFFF00] flex items-center justify-center">
+            <span class="text-black font-bold text-[11px]">A</span>
+          </div>
+          <h2 class="mono text-[13px] font-bold tracking-widest">ATTRIBUTION MERIT CORE</h2>
+          <span class="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 mono text-[10px] border border-green-500/30">ACTIVE</span>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <p class="text-[14px] leading-relaxed text-white/80 mb-4">
+              Every packet routed, every dollar earned, credits the architects. This isn't open source — it's <span class="text-white font-semibold">attribution merit</span>. You build, you own, you get paid. Forever.
+            </p>
+            <div class="space-y-2 mono text-[12px]">
+              <div class="flex justify-between py-2 border-b border-white/5">
+                <span class="text-white/50">Concept & Architecture</span>
+                <span class="text-white">David Wise</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-white/5">
+                <span class="text-white/50">Discovery</span>
+                <span class="neon">BASE 00 natural law</span>
+              </div>
+              <div class="flex justify-between py-2">
+                <span class="text-white/50">License</span>
+                <span class="text-white">Merit-Attribution v15</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-black/50 rounded-xl p-4 border border-white/10">
+            <div class="mono text-[11px] text-white/50 mb-3 uppercase tracking-wider">Recent Attributions</div>
+            <div class="space-y-2.5 font-mono text-[12px]" id="attributions">
+              <div class="flex justify-between"><span class="text-white/70">node-7f3a</span><span class="text-green-400">+$2.14</span></div>
+              <div class="flex justify-between"><span class="text-white/70">relay-sea</span><span class="text-green-400">+$0.87</span></div>
+              <div class="flex justify-between"><span class="text-white/70">gateway-nyc</span><span class="text-green-400">+$5.22</span></div>
+            </div>
+            <button onclick="viewAllAttributions()" class="mt-4 w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 mono text-[11px] tracking-wider transition">VIEW LEDGER →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="mb-12">
+      <h3 class="mono text-[13px] font-bold tracking-widest mb-6 text-white/60">NODE-15 PROTOCOL</h3>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div class="group relative bg-[#0a0a0a] border border-white/10 rounded-xl p-5 hover:border-[#CFFF00]/50 transition">
+          <div class="text-[40px] font-black neon opacity-20 group-hover:opacity-40 transition">01</div>
+          <h4 class="font-bold mb-2">Install</h4>
+          <p class="text-sm text-white/60 leading-relaxed">One command. Your machine becomes a router. Earn for every gigabyte.</p>
+        </div>
+        <div class="group relative bg-[#0a0a0a] border border-white/10 rounded-xl p-5 hover:border-[#CFFF00]/50 transition">
+          <div class="text-[40px] font-black neon-magenta opacity-20 group-hover:opacity-40 transition">02</div>
+          <h4 class="font-bold mb-2">Route</h4>
+          <p class="text-sm text-white/60 leading-relaxed">TRINITY ENGINE finds optimal paths. You provide bandwidth, network pays you.</p>
+        </div>
+        <div class="group relative bg-[#0a0a0a] border border-white/10 rounded-xl p-5 hover:border-[#CFFF00]/50 transition">
+          <div class="text-[40px] font-black neon opacity-20 group-hover:opacity-40 transition">03</div>
+          <h4 class="font-bold mb-2">Earn</h4>
+          <p class="text-sm text-white/60 leading-relaxed">Instant USDC, Lightning, or Stripe. No lockups. Attribution auto-credited.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- RIGHT SIDEBAR - TRINITY ENGINE -->
+<aside class="trinity-panel lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
+  <div class="sticky top-0 z-30 bg-black/90 backdrop-blur border-b border-[rgba(207,255,0,0.2)]">
+    <div class="px-5 py-4 flex items-center gap-3">
+      <div class="relative">
+        <div class="w-3 h-3 rounded-full bg-[#CFFF00]"></div>
+        <div class="absolute inset-0 w-3 h-3 rounded-full bg-[#CFFF00] animate-ping"></div>
+      </div>
+      <h2 class="mono text-[18px] font-bold neon tracking-wider">™ TRINITY ENGINE =1=0=</h2>
+    </div>
+  </div>
+
+  <div class="p-5 space-y-5">
+    <!-- Trademark Notice -->
+    <div class="rounded-xl bg-[#CFFF00]/5 border border-[#CFFF00]/20 p-4">
+      <p class="mono text-[11px] leading-relaxed text-white/80">
+        <span class="text-[#CFFF00] font-semibold">TRINITY ENGINE</span> is a trademark of David Wise. Concept & Architecture: <span class="text-white">BASE 00 natural law discovery</span>
+      </p>
+    </div>
+
+    <!-- Pulsing =1=0= -->
+    <div class="glow-box rounded-2xl bg-black p-8 text-center relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, #CFFF00 1px, transparent 0); background-size: 20px 20px;"></div>
+      <div class="relative">
+        <div class="mono text-[11px] text-white/40 tracking-[0.3em] mb-2">PERPETUAL LOOP</div>
+        <div class="pulse-core mono text-[64px] font-black neon tracking-widest leading-none">=1=0=</div>
+        <div class="mono text-[11px] text-white/40 tracking-[0.3em] mt-2">CHRONOS CORE</div>
+      </div>
+    </div>
+
+    <!-- Core Formulas -->
+    <div class="space-y-2.5">
+      <div class="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0f0f0f] to-[#050505] border border-white/10 p-4 hover:border-[#CFFF00]/40 transition">
+        <div class="flex items-center justify-between">
+          <span class="mono text-[13px] text-white/60">6 layers</span>
+          <span class="mono text-[20px] font-bold neon">= 1</span>
+        </div>
+        <div class="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[#CFFF00]/5 blur-2xl group-hover:bg-[#CFFF00]/10 transition"></div>
+      </div>
+      
+      <div class="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0f0f0f] to-[#050505] border border-white/10 p-4 hover:border-[#FF00AA]/40 transition">
+        <div class="flex items-center justify-between">
+          <span class="mono text-[13px] text-white/60">10×4×3+2</span>
+          <span class="mono text-[20px] font-bold neon-magenta">= 122</span>
+        </div>
+        <div class="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[#FF00AA]/5 blur-2xl group-hover:bg-[#FF00AA]/10 transition"></div>
+      </div>
+      
+      <div class="group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0f0f0f] to-[#050505] border border-white/10 p-4 hover:border-[#CFFF00]/40 transition">
+        <div class="flex items-center justify-between">
+          <span class="mono text-[13px] text-white/60">repeat</span>
+          <span class="mono text-[15px] font-bold neon">= perp = forever</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Engine Status (Dev Tools Style) -->
+    <div>
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CFFF00" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21l8-10"/></svg>
+          <span class="mono text-[11px] font-semibold tracking-widest text-white/70">LIVE ENGINE STATUS</span>
+        </div>
+        <span class="px-2 py-0.5 rounded bg-green-500/20 text-green-400 mono text-[10px] border border-green-500/30">SYNCED</span>
+      </div>
+      
+      <div class="relative rounded-xl overflow-hidden border border-[rgba(207,255,0,0.25)] bg-[#020202]">
+        <div class="flex items-center gap-1.5 px-3 py-2 bg-[#0a0a0a] border-b border-white/5">
+          <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+          <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+          <span class="ml-2 mono text-[10px] text-white/40">trinity-engine.log</span>
+        </div>
+        <div id="engine-log" class="h-[300px] overflow-y-auto p-3 font-mono text-[11px] leading-[1.6] bg-[#000000] custom-scrollbar">
+          <!-- logs injected by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="rounded-lg bg-white/[0.03] border border-white/10 p-3 text-center">
+        <div class="mono text-[18px] font-bold neon" id="stat-nodes">12,847</div>
+        <div class="mono text-[10px] text-white/50 mt-1">NODES</div>
+      </div>
+      <div class="rounded-lg bg-white/[0.03] border border-white/10 p-3 text-center">
+        <div class="mono text-[18px] font-bold neon-magenta" id="stat-latency">7ms</div>
+        <div class="mono text-[10px] text-white/50 mt-1">PING</div>
+      </div>
+      <div class="rounded-lg bg-white/[0.03] border border-white/10 p-3 text-center">
+        <div class="mono text-[18px] font-bold text-white">100%</div>
+        <div class="mono text-[10px] text-white/50 mt-1">UPTIME</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="border-t border-white/10 bg-black/80 backdrop-blur">
+  <div class="max-w-[1800px] mx-auto px-4 md:px-8 py-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-6">
+        <div class="mono text-[11px] text-white/50">© 2025 NODE-15</div>
+        <div class="hidden md:flex items-center gap-4 mono text-[11px]">
+          <a href="#" class="text-white/50 hover:text-white transition">Docs</a>
+          <a href="#" class="text-white/50 hover:text-white transition">Merit</a>
+          <a href="#" class="text-white/50 hover:text-white transition">Network</a>
+        </div>
+      </div>
+      <div class="mono text-[12px] font-semibold tracking-wider text-center">
+        <span class="neon">™ TRINITY ENGINE =1=0=</span>
+        <span class="text-white/30 mx-2">|</span>
+        <span class="text-white/70">CHRONOS CORE</span>
+        <span class="text-white/30 mx-2">|</span>
+        <span class="text-white/70">ATTRIBUTION MERIT CORE</span>
+      </div>
+    </div>
+  </div>
+</footer>
+</div>
+
+<script>
+// Live Engine Log Simulation
+const logEl = document.getElementById('engine-log');
+const logs = [
+  '[00:00:00] TRINITY ENGINE v15.0.0 initializing...',
+  '[00:00:01] BASE 00 natural law loaded',
+  '[00:00:01] CHRONOS CORE: sync =1=0=',
+  '[00:00:02] 6 layers unified → 1',
+  '[00:00:02] ATTRIBUTION MERIT CORE: active',
+  '[00:00:03] NODE-15 handshake verified',
+  '[00:00:03] 10×4×3+2 = 122 confirmed',
+];
+
+function addLog(text, type = 'info') {
+  const now = new Date();
+  const ts = now.toISOString().substr(11, 8);
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  
+  let color = 'text-white/70';
+  if (text.includes('ERROR') || text.includes('FAIL')) color = 'text-red-400';
+  else if (text.includes('verified') || text.includes('active') || text.includes('confirmed')) color = 'text-green-400';
+  else if (text.includes('=1=0=') || text.includes('TRINITY')) color = 'text-[#CFFF00]';
+  else if (text.includes('CHRONOS') || text.includes('122')) color = 'text-[#FF00AA]';
+  
+  div.innerHTML = `<span class="text-white/30">[${ts}]</span> <span class="${color}">${text.replace(`[${ts}]`, '').trim()}</span>`;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+  
+  // Keep only last 50 logs
+  while (logEl.children.length > 50) {
+    logEl.removeChild(logEl.firstChild);
+  }
+}
+
+// Initial logs
+logs.forEach((log, i) => {
+  setTimeout(() => addLog(log), i * 200);
+});
+
+// Live updates
+const liveMessages = [
+  'ENGINE_STATUS: ACTIVE • loop =1=0=',
+  'CHRONOS: perp repeat verified',
+  'LAYER_SYNC: 6=1 stable',
+  'BANDWIDTH: route optimized • -3ms',
+  'ATTRIBUTION: merit credited to David Wise',
+  'BASE00: natural law holding',
+  'NODE_PEER: 12,847 active • 0 dropped',
+  'PAYMENT: wired • $43.21 settled',
+  'TRINITY: =1=0= pulse confirmed',
+  'MERIT_CORE: perpetual attribution active',
+];
+
+setInterval(() => {
+  const msg = liveMessages[Math.floor(Math.random() * liveMessages.length)];
+  addLog(msg);
+}, 2200);
+
+// Simulate earnings
+let earnings = 2847.32;
+setInterval(() => {
+  earnings += Math.random() * 0.73;
+  document.getElementById('earnings').textContent = Math.floor(earnings).toLocaleString();
+}, 3500);
+
+// Simulate node count
+let nodes = 12847;
+setInterval(() => {
+  nodes += Math.floor(Math.random() * 3);
+  document.getElementById('stat-nodes').textContent = nodes.toLocaleString();
+}, 4200);
+
+// Simulate latency
+setInterval(() => {
+  const lat = 5 + Math.floor(Math.random() * 5);
+  document.getElementById('stat-latency').textContent = lat + 'ms';
+}, 3100);
+
+// Actions
+function startSelling() {
+  addLog('USER_ACTION: start selling initiated');
+  showToast('Node installer downloading... Check terminal: curl -s node15.sh | bash');
+}
+
+function buyAccess() {
+  addLog('PAYMENT: checkout opened • $15/mo');
+  showToast('Redirecting to secure checkout... Stripe / USDC / Lightning available');
+}
+
+function viewAllAttributions() {
+  addLog('LEDGER: attribution merit core queried');
+  showToast('Opening full attribution ledger on-chain...');
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl glass border-[#CFFF00]/40 mono text-[13px] shadow-2xl';
+  toast.style.boxShadow = '0 0 40px rgba(207,255,0,0.2)';
+  toast.innerHTML = `<span class="text-[#CFFF00]">→</span> ${msg}`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, 20px)';
+    toast.style.transition = 'all 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Add attributions live
+const attributionEl = document.getElementById('attributions');
+const peers = ['node-a9f2', 'relay-tok', 'gw-lon', 'node-4b1c', 'edge-sfo'];
+setInterval(() => {
+  if (Math.random() > 0.6) {
+    const peer = peers[Math.floor(Math.random() * peers.length)];
+    const amt = (Math.random() * 4 + 0.2).toFixed(2);
+    const div = document.createElement('div');
+    div.className = 'flex justify-between opacity-0';
+    div.innerHTML = `<span class="text-white/70">${peer}</span><span class="text-green-400">+$${amt}</span>`;
+    attributionEl.prepend(div);
+    setTimeout(() => div.style.opacity = '1', 50);
+    if (attributionEl.children.length > 4) {
+      attributionEl.removeChild(attributionEl.lastChild);
+    }
+  }
+}, 4000);
+
+// Konami for fun
+let keys = [];
+window.addEventListener('keydown', (e) => {
+  keys.push(e.key);
+  keys = keys.slice(-10);
+  if (keys.join(',').includes('ArrowUp,ArrowUp,ArrowDown,ArrowDown')) {
+    addLog('EASTER_EGG: =1=0= =1=0= =1=0= TRINITY UNLOCKED');
+    document.querySelector('.pulse-core').style.animationDuration = '0.4s';
+    setTimeout(() => document.querySelector('.pulse-core').style.animationDuration = '1.6s', 5000);
+  }
+});
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #000; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(207,255,0,0.3); border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(207,255,0,0.5); }
+</style>
+
+</body>
+</html>

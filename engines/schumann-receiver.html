@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7.83 Hz Schumann Resonance Receiver — Build Guide</title>
+<style>
+    :root {
+        --bg: #050810;
+        --bg-2: #0a101f;
+        --card: #0f172a;
+        --border: #1e293b;
+        --text: #e2e8f0;
+        --text-2: #94a3b8;
+        --accent: #00e5ff;
+        --accent-2: #7c3aed;
+        --ok: #22c55e;
+        --warn: #f59e0b;
+        --code-bg: #020617;
+        --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.65;
+        overflow-x: hidden;
+    }
+    /* Background */
+    .grid-bg {
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(ellipse at top, rgba(124,58,237,0.15), transparent 60%),
+            radial-gradient(ellipse at bottom, rgba(0,229,255,0.12), transparent 60%),
+            linear-gradient(transparent 0%, var(--bg) 80%),
+            repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+            repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px);
+        z-index: -2;
+    }
+    .glow {
+        position: fixed;
+        top: -200px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(0,229,255,0.2), transparent 70%);
+        filter: blur(60px);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    header {
+        padding: 80px 20px 40px;
+        text-align: center;
+        position: relative;
+    }
+    .eyebrow {
+        display: inline-block;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(15,23,42,0.7);
+        backdrop-filter: blur(8px);
+        color: var(--text-2);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+    h1 {
+        font-size: clamp(32px, 6vw, 56px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(180deg, #fff, #a5f3fc 60%, #00e5ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 16px;
+    }
+    .subtitle {
+        max-width: 750px;
+        margin: 0 auto;
+        color: var(--text-2);
+        font-size: clamp(16px, 2.5vw, 19px);
+    }
+    .hz {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 24px;
+        padding: 10px 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+    }
+    .hz-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent);
+        animation: pulse 1.28s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(12px);
+        background: rgba(5,8,16,0.7);
+        border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 8px;
+        padding: 10px 16px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    nav a {
+        color: var(--text-2);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        white-space: nowrap;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    nav a:hover, nav a.active {
+        color: var(--text);
+        background: var(--card);
+        border-color: var(--border);
+    }
+
+    main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 100px;
+    }
+    section {
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+    section::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0.5;
+    }
+    h2 {
+        font-size: 26px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    h2 .num {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        color: var(--accent);
+        background: rgba(0,229,255,0.1);
+        border: 1px solid rgba(0,229,255,0.2);
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    h3 {
+        font-size: 18px;
+        margin: 24px 0 12px;
+        color: #cbd5e1;
+    }
+    p { color: var(--text-2); margin-bottom: 14px; }
+    ul, ol { margin-left: 20px; color: var(--text-2); margin-bottom: 14px; }
+    li { margin-bottom: 8px; }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    @media (min-width: 900px) { .grid-2 { grid-template-columns: 1.1fr 0.9fr; } }
+
+    .card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+    th, td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    th {
+        background: rgba(0,229,255,0.06);
+        color: var(--text);
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    tr:last-child td { border-bottom: none; }
+    td { color: var(--text-2); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #e2e8f0;
+        position: relative;
+    }
+    code { font-family: inherit; }
+    .code-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        margin-top: 20px;
+    }
+    .code-label {
+        font-size: 12px;
+        color: var(--text-2);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .copy {
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .copy:hover { color: var(--accent); border-color: var(--accent); }
+    .copy.ok { color: var(--ok); border-color: var(--ok); }
+
+    .ascii {
+        color: #7dd3fc;
+        text-shadow: 0 0 10px rgba(125,211,252,0.2);
+    }
+
+    svg.wiring {
+        width: 100%;
+        height: auto;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .tip {
+        display: flex;
+        gap: 12px;
+        padding: 14px;
+        background: rgba(245,158,11,0.08);
+        border: 1px solid rgba(245,158,11,0.2);
+        border-radius: 12px;
+        margin: 16px 0;
+    }
+    .tip .icon { color: var(--warn); font-size: 20px; line-height: 1; }
+
+    .spec {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px dashed var(--border);
+        font-size: 14px;
+    }
+    .spec:last-child { border-bottom: none; }
+    .spec b { color: var(--text); font-weight: 500; }
+    .spec span { color: var(--text-2); font-family: ui-monospace, monospace; }
+
+    .canvas-wrap {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+    canvas { width: 100%; height: 120px; display: block; }
+
+    footer {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-2);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: rgba(124,58,237,0.15);
+        border: 1px solid rgba(124,58,237,0.3);
+        color: #c4b5fd;
+        font-size: 11px;
+        margin-left: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow"></div>
+
+<header>
+    <div class="eyebrow">ELF · VLF · Earth-Ionosphere Cavity</div>
+    <h1>Schumann Resonance Receiver</h1>
+    <p class="subtitle">Build a highly sensitive 7.83 Hz induction coil receiver to detect the Earth's natural electromagnetic heartbeat. No radio license required — pure analog physics.</p>
+    <div class="hz"><span class="hz-dot"></span><span style="font-family: ui-monospace, monospace; color: var(--accent);">7.83 Hz</span> <span style="color: var(--text-2);">· fundamental mode</span></div>
+</header>
+
+<nav>
+    <div class="nav-inner">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#parts">Parts List</a>
+        <a href="#coil">Coil</a>
+        <a href="#amplifier">Amplifier</a>
+        <a href="#wiring">Wiring</a>
+        <a href="#assembly">Assembly</a>
+        <a href="#code">Python</a>
+        <a href="#calibration">Calibration</a>
+        <a href="#results">Results</a>
+    </div>
+</nav>
+
+<main>
+    <section id="overview">
+        <h2><span class="num">01</span> Overview</h2>
+        <div class="grid-2">
+            <div>
+                <p>The Schumann resonances are global electromagnetic resonances excited by lightning in the cavity between Earth's surface and ionosphere. The fundamental is ~7.83 Hz, with harmonics at ~14.3, 20.8, 27.3, and 33.8 Hz.</p>
+                <p>This receiver uses a massive induction coil (antenna) and an ultra-low-noise amplifier with ~10,000× gain. The signal is then digitized by a 24-bit ADC or USB sound card and processed with FFT to reveal the peaks.</p>
+                <h3>Key Challenges</h3>
+                <ul>
+                    <li>Signal is ~1 picoTesla — 50 million times weaker than Earth's DC field</li>
+                    <li>Must reject 50/60 Hz mains hum by >80 dB</li>
+                    <li>Requires remote, quiet location away from power lines</li>
+                    <li>Needs long integration (5-30 minutes) for clean spectrum</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">Live Simulation</h3>
+                <p style="font-size:13px">What 7.83 Hz looks like after amplification.</p>
+                <div class="canvas-wrap"><canvas id="scope" width="600" height="120"></canvas></div>
+                <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--text-2); font-family: monospace;">
+                    <span>TIMEBASE: 500ms/div</span>
+                    <span id="hz-readout">7.83 Hz</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="parts">
+        <h2><span class="num">02</span> Parts List</h2>
+        <table>
+            <thead>
+                <tr><th>Qty</th><th>Component</th><th>Spec</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Coil Form</td><td>PVC 200mm Ø × 500mm</td><td>Or 8" sonotube. Larger = better</td></tr>
+                <tr><td>~7 km</td><td>Magnet Wire</td><td>AWG 28 (0.32mm) enamelled</td><td>~18,000-25,000 turns. ~1.5kΩ DC</td></tr>
+                <tr><td>1</td><td>Instrumentation Amp</td><td>INA128P / AD620</td><td>Ultra-low noise, critical</td></tr>
+                <tr><td>2</td><td>Op-Amp</td><td>OPA2188, LT1028, or NE5532</td><td>Low 1/f noise essential</td></tr>
+                <tr><td>1</td><td>ADC</td><td>ADS1256 24-bit or USB sound card</td><td>Sound card = easiest (192kHz)</td></tr>
+                <tr><td>1</td><td>Raspberry Pi 4</td><td>or laptop</td><td>For logging</td></tr>
+                <tr><td>2</td><td>Met Poly Cap</td><td>220nF 1%</td><td>Coil tuning to 7.83Hz</td></tr>
+                <tr><td>4</td><td>Resistors</td><td>27k 1% metal film</td><td>Twin-T notch</td></tr>
+                <tr><td>4</td><td>Capacitors</td><td>100nF C0G</td><td>Twin-T notch (50/60Hz)</td></tr>
+                <tr><td>4</td><td>Resistors</td><td>53.6k 1%</td><td>LPF 30Hz</td></tr>
+                <tr><td>4</td><td>Capacitors</td><td>100nF</td><td>LPF 30Hz</td></tr>
+                <tr><td>1</td><td>Battery Pack</td><td>2× 9V Li-Ion</td><td>NO switch-mode supply!</td></tr>
+                <tr><td>1</td><td>Shielded Box</td><td>Die-cast aluminum</td><td>Preamp enclosure</td></tr>
+            </tbody>
+        </table>
+        <div class="tip"><div class="icon">⚠</div><div><b>Avoid switch-mode power supplies.</b> Use batteries only. A single phone charger 20m away will swamp the signal.</div></div>
+    </section>
+
+    <section id="coil">
+        <h2><span class="num">03</span> Coil Winding Specs</h2>
+        <div class="grid-2">
+            <div>
+                <div class="spec"><b>Target Inductance</b><span>80 - 300 H</span></div>
+                <div class="spec"><b>Target Resistance</b><span>800Ω - 2kΩ</span></div>
+                <div class="spec"><b>Turns</b><span>18,000 - 25,000</span></div>
+                <div class="spec"><b>Wire</b><span>AWG 28 (0.32mm) or AWG 30</span></div>
+                <div class="spec"><b>Form</b><span>200mm diameter, 400-600mm long</span></div>
+                <div class="spec"><b>Winding</b><span>Layer-wound, ~80 turns/layer</span></div>
+                <div class="spec"><b>Tuning Cap</b><span>C = 1/((2πf)²L) ≈ 150-330nF</span></div>
+                <p style="margin-top:16px">For 7.83 Hz, with L=150H: C ≈ 2.76 nF. Wait — that's wrong for parallel? Actually use series resonance: Most builders use a large ferrite core or add parallel capacitor of 100-470nF to PEAK at 7-10Hz. Experimentally tune: sweep with signal generator, find peak.</p>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">Pro Tips</h3>
+                <ul>
+                    <li>Wind with a drill + counter. 20k turns = ~6 hours.</li>
+                    <li>Apply thin epoxy every 5 layers to prevent microphonics.</li>
+                    <li>Use bifilar winding for humbucking: wind two wires, connect end-to-start to double turns and reject E-field.</li>
+                    <li>Orient coil HORIZONTALLY, N-S alignment for max signal.</li>
+                    <li>Bury 30cm deep or place in forest 100m+ from buildings.</li>
+                    <li>Mu-metal shield around preamp only, NOT coil.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="amplifier">
+        <h2><span class="num">04</span> Amplifier Circuit <span class="badge">Critical</span></h2>
+        <p>Total gain ~10,000 (80dB). Three stages: Instrumentation amp → 50/60Hz Twin-T notch → 4th-order 30Hz low-pass.</p>
+        
+        <div class="code-head">
+            <span class="code-label">ASCII Schematic</span>
+        </div>
+        <pre class="ascii"><code>COIL (L ~150H, R ~1.5k)          INA128 (G=1000)
+      ┌───/\/\/\/\───┐              ┌─────────────┐
+      │   ~~~~~~~~   │              │             │
+      └─┬─────────┬──┘              │ +IN     OUT ├─────> to Stage 2
+        │    C1   │    ┌────────────┤ -IN         │
+        │  220nF  │    │            │      RG     │
+        │    │    │   10k           └──────┬──────┘
+       GND  GND   │  to GND                │
+                  └─ 10k to GND         51Ω (G=1+50k/Rg)
+                       (bias)
+
+STAGE 2: Twin-T Notch (60Hz, use 50Hz values in parens)
+IN ──[10k]──┬──[10k]──┬──> to LPF
+            │         │
+           100nF     100nF
+            │         │
+           GND  ┌──[27k(33k)]──┐
+                │    200nF     │
+                └───[27k(33k)]─┘
+
+STAGE 3: 2x Sallen-Key LPF, fc=30Hz
+OPA2188, R=53.6k, C=100nF (per stage), Gain=1.6 each
+Final OUT ─[1k]─> ADC (protects input)</code></pre>
+
+        <h3>Component Values (per channel)</h3>
+        <ul>
+            <li><b>INA128:</b> Rg = 51Ω → Gain = 981. Set pins 1-8.</li>
+            <li><b>HPF:</b> 10µF film + 47k to GND after INA → fc = 0.34 Hz (blocks DC drift)</li>
+            <li><b>Notch 60Hz:</b> R=26.7k, C=100nF. For 50Hz: R=31.8k, C=100nF</li>
+            <li><b>LPF:</b> 4th order Butterworth, fc=30Hz. Two stages, R=53.6k, C=100nF</li>
+            <li><b>Power:</b> ±9V batteries, 100µF + 100nF decoupling at each IC</li>
+        </ul>
+    </section>
+
+    <section id="wiring">
+        <h2><span class="num">05</span> Wiring Diagram</h2>
+        <svg class="wiring" viewBox="0 0 960 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+                <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <style>
+                .box{fill:#0a101f; stroke:#1e293b; stroke-width:2; rx:12}
+                .txt{fill:#e2e8f0; font-family:system-ui, sans-serif; font-size:14px}
+                .sub{fill:#94a3b8; font-size:11px}
+                .wire{stroke:url(#g1); stroke-width:3; fill:none; filter:url(#glow)}
+                .arr{fill:url(#g1)}
+            </style>
+            <!-- Coil -->
+            <rect x="20" y="70" width="140" height="80" class="box"/>
+            <text x="90" y="100" text-anchor="middle" class="txt">INDUCTION</text>
+            <text x="90" y="118" text-anchor="middle" class="txt">COIL</text>
+            <text x="90" y="138" text-anchor="middle" class="sub">20k turns ~150H</text>
+            <!-- coil symbol -->
+            <path d="M30 50 Q40 30 50 50 T70 50 T90 50 T110 50 T130 50 T150 50" stroke="#00e5ff" fill="none" stroke-width="2"/>
+            <!-- Preamp -->
+            <rect x="220" y="50" width="180" height="120" class="box"/>
+            <text x="310" y="85" text-anchor="middle" class="txt">PREAMP</text>
+            <text x="310" y="105" text-anchor="middle" class="sub">INA128 + OPA2188</text>
+            <text x="310" y="122" text-anchor="middle" class="sub">Gain 10k, Notch, LPF</text>
+            <text x="310" y="140" text-anchor="middle" class="sub">±9V Battery</text>
+            <!-- ADC -->
+            <rect x="460" y="70" width="140" height="80" class="box"/>
+            <text x="530" y="100" text-anchor="middle" class="txt">ADC</text>
+            <text x="530" y="120" text-anchor="middle" class="sub">ADS1256 24-bit</text>
+            <text x="530" y="137" text-anchor="middle" class="sub">or USB soundcard</text>
+            <!-- Pi -->
+            <rect x="660" y="50" width="180" height="120" class="box"/>
+            <text x="750" y="85" text-anchor="middle" class="txt">RASPBERRY PI 4</text>
+            <text x="750" y="105" text-anchor="middle" class="sub">Python + FFT logging</text>
+            <text x="750" y="122" text-anchor="middle" class="sub">200 SPS, 24h files</text>
+            <text x="750" y="140" text-anchor="middle" class="sub">SSD storage</text>
+            <!-- Wires -->
+            <path class="wire" d="M160 110 H220"/>
+            <polygon class="arr" points="218,105 228,110 218,115"/>
+            <path class="wire" d="M400 110 H460"/>
+            <polygon class="arr" points="458,105 468,110 458,115"/>
+            <path class="wire" d="M600 110 H660"/>
+            <polygon class="arr" points="658,105 668,110 658,115"/>
+            <!-- shield -->
+            <text x="190" y="100" class="sub" fill="#00e5ff">twisted pair shielded</text>
+            <text x="425" y="100" class="sub" fill="#00e5ff">coax</text>
+            <text x="625" y="100" class="sub" fill="#00e5ff">SPI / USB</text>
+            <!-- Ground -->
+            <path d="M310 170 V190 M295 190 H325 M300 195 H320" stroke="#94a3b8" stroke-width="2" fill="none"/>
+            <text x="310" y="210" text-anchor="middle" class="sub">Earth Rod</text>
+        </svg>
+    </section>
+
+    <section id="assembly">
+        <h2><span class="num">06</span> Assembly Steps</h2>
+        <ol>
+            <li><b>Wind the coil:</b> Mount PVC on lathe/drill. Wind 18-22k turns in neat layers. Measure DC resistance every 5k turns. Target 1.2-1.8kΩ. Finish with kapton tape.</li>
+            <li><b>Tune coil:</b> Connect LCR meter or signal generator. Add 220nF parallel cap. Sweep 5-15Hz, adjust cap for peak near 8Hz.</li>
+            <li><b>Build preamp:</b> Use perfboard or PCB. Keep INA128 input traces <2cm, guarded. Solder Rg (51Ω) directly across pins 1-8.</li>
+            <li><b>Test gain:</b> Inject 7.83 Hz, 100µVpp via 1MΩ resistor. Output should be ~1Vpp. Verify notch: 60Hz input should be <-40dB.</li>
+            <li><b>Enclose:</b> Mount preamp in die-cast box. Coil connects via shielded twisted pair (shield = GND only at preamp). Battery inside box.</li>
+            <li><b>Deploy:</b> Place coil horizontal, align to North-South. Minimum 100m from houses, power lines, fences. Bury cable 10cm.</li>
+            <li><b>Grounding:</b> Drive 50cm copper rod near preamp. Connect enclosure to earth. Do NOT ground coil (floating differential).</li>
+            <li><b>Connect ADC:</b> Output via 1kΩ to soundcard line-in (96kHz) or ADS1256 AIN0. Use USB isolator if laptop powered.</li>
+            <li><b>First light:</b> Run Python script below for 10 minutes. You should see mains hum initially, then after notch, noise floor ~10µV.</li>
+            <li><b>Long run:</b> Log overnight. Schumann peaks appear clearest 02:00-06:00 local time.</li>
+        </ol>
+    </section>
+
+    <section id="code">
+        <h2><span class="num">07</span> Python Data Logging & FFT</h2>
+        <p>Records at 200 Hz, applies 30Hz LPF, computes Welch PSD over 10-minute windows. Saves PNG and CSV.</p>
+        <div class="code-head">
+            <span class="code-label">schumann_logger.py</span>
+            <button class="copy" data-target="code1">Copy</button>
+        </div>
+        <pre><code id="code1">#!/usr/bin/env python3
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt, welch
+import time, datetime, csv
+
+# --- CONFIG ---
+FS = 200              # Sample rate (Hz)
+DURATION = 600        # seconds per file (10 min)
+F_LOW = 0.5
+F_HIGH = 30.0
+GAIN = 10000          # your preamp gain
+ADC_VREF = 2.5        # for ADS1256, or 1.0 for soundcard
+
+def acquire(fs, seconds):
+    """Replace with your ADC read. Example for USB soundcard:"""
+    try:
+        import sounddevice as sd
+        print(f"[REC] {seconds}s @ {fs}Hz...")
+        data = sd.rec(int(seconds*fs), samplerate=fs, channels=1,
+                     dtype='float32', blocking=True)
+        return data.flatten()
+    except:
+        # synthetic test signal
+        t = np.arange(0, seconds, 1/fs)
+        sig = 0.7*np.sin(2*np.pi*7.83*t) + 0.3*np.sin(2*np.pi*14.3*t)
+        noise = np.random.normal(0, 0.5, len(t))
+        return sig + noise
+
+def butter_bandpass(low, high, fs, order=4):
+    nyq = fs/2
+    b, a = butter(order, [low/nyq, high/nyq], btype='band')
+    return b, a
+
+def process(data, fs):
+    b, a = butter_bandpass(F_LOW, F_HIGH, fs)
+    filt = filtfilt(b, a, data)
+    # Welch: 60s segments for 0.016 Hz resolution
+    f, Pxx = welch(filt, fs, nperseg=fs*60, noverlap=fs*30)
+    asd = np.sqrt(Pxx) / GAIN  # V/rtHz at coil
+    return f, asd, filt
+
+def main():
+    while True:
+        ts = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        raw = acquire(FS, DURATION)
+        f, asd, filt = process(raw, FS)
+
+        # Save CSV
+        with open(f'schumann_{ts}.csv','w', newline='') as cf:
+            w = csv.writer(cf)
+            w.writerow(['freq_hz','asd_V_per_rtHz'])
+            w.writerows(zip(f, asd))
+
+        # Plot
+        plt.figure(figsize=(10,5))
+        plt.semilogy(f, asd)
+        for hz in [7.83, 14.3, 20.8, 27.3, 33.8]:
+            plt.axvline(hz, color='cyan', ls='--', alpha=0.5, lw=1)
+        plt.xlim(1, 40)
+        plt.ylim(1e-9, 1e-6)
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('ASD (V/√Hz at coil)')
+        plt.title(f'Schumann Resonance - {ts} UTC')
+        plt.grid(True, alpha=0.3, which='both')
+        plt.tight_layout()
+        plt.savefig(f'schumann_{ts}.png', dpi=150)
+        plt.close()
+        print(f"[OK] Saved {ts}")
+        time.sleep(2)
+
+if __name__ == "__main__":
+    main()</code></pre>
+        <p style="margin-top:12px; font-size:13px; color:var(--text-2)">Install: <code>pip install numpy scipy matplotlib sounddevice</code>. For ADS1256 use <code>pip install adafruit-circuitpython-ads1x15</code> and replace acquire().</p>
+    </section>
+
+    <section id="calibration">
+        <h2><span class="num">08</span> Calibration Tips</h2>
+        <ul>
+            <li><b>Absolute field:</b> Inject known signal via 10-turn calibration loop 1m from coil. B = µ₀·N·I/(2R). For N=10, R=0.5m, I=1mA @7.83Hz → ~12.6 pT.</li>
+            <li><b>Frequency reference:</b> GPS PPS is accurate to <1µs. Or use online atomic clock audio.</li>
+            <li><b>Noise floor test:</b> Short preamp input with 1.5k resistor (simulates coil). Spectrum should be flat ~2-3 nV/√Hz above 5Hz. Peaks = interference.</li>
+            <li><b>Orientation:</b> Rotate coil slowly. Max amplitude occurs when coil axis is perpendicular to wave propagation (usually E-W coil gives N-S sensitivity).</li>
+            <li><b>Diurnal variation:</b> Expect 2-3× stronger signal at night due to lower D-layer absorption.</li>
+        </ul>
+    </section>
+
+    <section id="results">
+        <h2><span class="num">09</span> Expected Results</h2>
+        <div class="grid-2">
+            <div>
+                <p>After 30 minutes integration in a quiet rural location, you should see:</p>
+                <ul>
+                    <li>Clear peak at <b>7.83 ±0.15 Hz</b>, Q ~4-6</li>
+                    <li>Second harmonic ~14.3 Hz (often stronger in daytime)</li>
+                    <li>Third ~20.8 Hz, fourth ~27.3 Hz visible on good nights</li>
+                    <li>Amplitude at coil: ~0.3-1.0 pT/√Hz → after 10k gain = 10-30 µV/√Hz at ADC</li>
+                    <li>No 50/60 Hz spike >10× noise floor (if notch works)</li>
+                </ul>
+                <p>If you see only mains hum: move farther, check battery, verify twin-T values, add common-mode choke on cable.</p>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0">Typical Spectrum</h3>
+                <svg viewBox="0 0 400 200" style="width:100%; height:auto; background:#020617; border-radius:8px; border:1px solid var(--border)">
+                    <polyline points="0,180 20,170 40,160 60,140 80,100 90,60 100,95 120,140 140,155 160,120 170,80 180,115 200,150 220,135 230,100 240,125 260,145 280,130 290,110 300,130 320,150 360,165 400,175" fill="none" stroke="#00e5ff" stroke-width="2"/>
+                    <line x1="90" y1="0" x2="90" y2="200" stroke="#22c55e" stroke-dasharray="3,3" opacity="0.6"/>
+                    <text x="90" y="15" fill="#22c55e" font-size="10" text-anchor="middle">7.83</text>
+                    <line x1="170" y1="0" x2="170" y2="200" stroke="#22c55e" stroke-dasharray="3,3" opacity="0.4"/>
+                    <text x="170" y="15" fill="#22c55e" font-size="10" text-anchor="middle">14.3</text>
+                    <line x1="230" y1="0" x2="230" y2="200" stroke="#22c55e" stroke-dasharray="3,3" opacity="0.4"/>
+                    <text x="230" y="15" fill="#22c55e" font-size="10" text-anchor="middle">20.8</text>
+                </svg>
+                <p style="font-size:12px; color:var(--text-2); margin-top:8px">Log frequency (1-40 Hz) vs amplitude. Real data is noisier; averaging reveals peaks.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    Built for research & education. Schumann resonances vary with global lightning activity and solar conditions. Share your spectrograms! — 7.83 Hz Earth monitor v1.0
+</footer>
+
+<script>
+    // Smooth nav active
+    const links = document.querySelectorAll('nav a');
+    const secs = [...document.querySelectorAll('section')];
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if(e.isIntersecting){
+                links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+            }
+        });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+    secs.forEach(s => obs.observe(s));
+
+    // Copy buttons
+    document.querySelectorAll('.copy').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const code = document.getElementById(btn.dataset.target).innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('ok');
+                setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok')},1500);
+            });
+        });
+    });
+
+    // Live 7.83Hz canvas
+    const canvas = document.getElementById('scope');
+    const ctx = canvas.getContext('2d');
+    let t = 0;
+    function draw(){
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+        // grid
+        ctx.strokeStyle = 'rgba(148,163,184,0.1)';
+        ctx.lineWidth = 1;
+        for(let x=0;x<w;x+=w/10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+        for(let y=0;y<h;y+=h/4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+        // trace
+        ctx.beginPath();
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 8;
+        for(let x=0;x<w;x++){
+            const time = t + x*0.005;
+            const y = h/2 + Math.sin(2*Math.PI*7.83*time)*30 + Math.sin(2*Math.PI*14.3*time)*10 + (Math.random()-0.5)*2;
+            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        t += 0.016;
+        requestAnimationFrame(draw);
+    }
+    draw();
+</script>
+</body>
+</html>

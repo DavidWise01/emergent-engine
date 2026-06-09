@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chromatic Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+:root {
+  --bg-primary: #0a0412;
+  --bg-secondary: #130819;
+  --bg-glass: rgba(32, 12, 48, 0.4);
+  --border-glass: rgba(168, 85, 247, 0.2);
+  --purple-neon: #a855f7;
+  --purple-glow: rgba(168, 85, 247, 0.6);
+  --text-primary: #f5f3ff;
+  --text-secondary: #c4b5fd;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+}
+
+.hexagon-bg {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 0h30l15 26-15 26H15L0 26z' fill='none' stroke='rgba(168,85,247,0.08)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: cover, cover, 60px 52px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-glass);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-hover:hover {
+  background: rgba(32, 12, 48, 0.6);
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px var(--purple-glow);
+}
+
+.neon-text {
+  text-shadow: 0 0 10px var(--purple-glow), 0 0 20px var(--purple-glow);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(168, 85, 247, 0.2);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--purple-neon);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--purple-glow);
+  transition: all 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px var(--purple-glow);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--purple-neon);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+input[type="number"], input[type="text"], select {
+  background: rgba(10, 4, 18, 0.6);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 6px 10px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: var(--purple-neon);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.layer-item {
+  cursor: grab;
+  transition: all 0.2s;
+}
+
+.layer-item:active {
+  cursor: grabbing;
+}
+
+.layer-item.dragging {
+  opacity: 0.5;
+}
+
+.keyframe {
+  width: 12px;
+  height: 12px;
+  background: var(--purple-neon);
+  transform: rotate(45deg);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--purple-glow);
+  transition: all 0.2s;
+}
+
+.keyframe:hover, .keyframe.active {
+  transform: rotate(45deg) scale(1.3);
+  box-shadow: 0 0 15px var(--purple-glow);
+}
+
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+}
+
+.toast {
+  animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-100px); opacity: 0; }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 4, 18, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+.timeline-playhead {
+  transition: left 0.05s linear;
+}
+</style>
+</head>
+<body>
+<div class="hexagon-bg"></div>
+<img id="mimzySource" src="container:///mnt/data/mimzy_honeycomb_hyperreal_v2.jpg" hidden crossorigin="anonymous">
+
+<div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+
+<div class="relative z-10 flex flex-col h-screen">
+  <!-- Top Bar -->
+  <header class="glass m-3 mb-0 rounded-xl p-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <path d="M16 2L4 9V23L16 30L28 23V9L16 2Z" stroke="var(--purple-neon)" stroke-width="2" fill="none"/>
+        <path d="M16 10L10 13.5V20.5L16 24L22 20.5V13.5L16 10Z" fill="var(--purple-neon)" opacity="0.6"/>
+      </svg>
+      <h1 class="text-xl font-bold neon-text">Chromatic Engine</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btnRandomize" class="glass glass-hover px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9"/>
+          <path d="M16 8h6V2"/>
+        </svg>
+        Randomize
+      </button>
+      <button id="btnLoadPreset" class="glass glass-hover px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Load
+      </button>
+      <button id="btnSavePreset" class="glass glass-hover px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
+      <div class="w-px h-6 bg-purple-800/50"></div>
+      <button id="btnExportPNG" class="glass glass-hover px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        PNG
+      </button>
+      <button id="btnExportSVG" class="glass glass-hover px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        SVG
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex gap-3 p-3 pt-2 overflow-hidden">
+    <!-- Left Panel: Layer Manager -->
+    <aside class="glass rounded-xl w-80 flex flex-col overflow-hidden">
+      <div class="p-4 border-b border-purple-900/30">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold">Layer Manager</h2>
+          <button id="btnAddLayer" class="glass glass-hover w-8 h-8 rounded-lg flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+        <p class="text-xs text-purple-300">Max 8 layers • Drag to reorder</p>
+      </div>
+      <div id="layerList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+    </aside>
+
+    <!-- Center: Canvas -->
+    <main class="flex-1 glass rounded-xl overflow-hidden relative">
+      <canvas id="glCanvas" class="w-full h-full"></canvas>
+      <div id="fpsCounter" class="absolute top-4 left-4 glass px-3 py-1 rounded-lg text-xs font-mono">
+        FPS: <span id="fpsVal">0</span>
+      </div>
+      <div id="coordsDisplay" class="absolute bottom-4 left-4 glass px-3 py-1 rounded-lg text-xs font-mono">
+        Zoom: <span id="zoomVal">1x</span> | Rot: <span id="rotVal">0°</span>
+      </div>
+    </main>
+
+    <!-- Right Panel: Global Controls -->
+    <aside class="glass rounded-xl w-80 flex flex-col overflow-hidden">
+      <div class="p-4 border-b border-purple-900/30">
+        <h2 class="text-lg font-semibold">Global Controls</h2>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Thrust</label>
+            <span id="thrustVal" class="text-xs font-mono text-purple-300">0.45 N</span>
+          </div>
+          <input type="range" id="thrust" min="0.45" max="5.9" step="0.01" value="0.45">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Honeycomb Density</label>
+            <span id="densityVal" class="text-xs font-mono text-purple-300">100 cells</span>
+          </div>
+          <input type="range" id="density" min="10" max="200" step="1" value="100">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Cell Size</label>
+            <span id="cellSizeVal" class="text-xs font-mono text-purple-300">20 px</span>
+          </div>
+          <input type="range" id="cellSize" min="2" max="50" step="1" value="20">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Dispersion</label>
+            <span id="dispersionVal" class="text-xs font-mono text-purple-300">0.5</span>
+          </div>
+          <input type="range" id="dispersion" min="0" max="2" step="0.01" value="0.5">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Bloom Intensity</label>
+            <span id="bloomVal" class="text-xs font-mono text-purple-300">0.8</span>
+          </div>
+          <input type="range" id="bloom" min="0" max="2" step="0.01" value="0.8">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Chromatic Aberration</label>
+            <span id="chromaticVal" class="text-xs font-mono text-purple-300">0.02</span>
+          </div>
+          <input type="range" id="chromatic" min="0" max="0.1" step="0.001" value="0.02">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Zoom</label>
+            <span id="zoomVal2" class="text-xs font-mono text-purple-300">1.00x</span>
+          </div>
+          <input type="range" id="zoom" min="1" max="100" step="0.1" value="1">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">Rotation</label>
+            <span id="rotationVal" class="text-xs font-mono text-purple-300">0°</span>
+          </div>
+          <input type="range" id="rotation" min="0" max="360" step="1" value="0">
+        </div>
+
+        <div class="pt-2 border-t border-purple-900/30">
+          <button id="btnResetView" class="w-full glass glass-hover py-2 rounded-lg text-sm font-medium">Reset View</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Bottom: Timeline -->
+  <footer class="glass m-3 mt-0 rounded-xl p-4">
+    <div class="flex items-center gap-4 mb-3">
+      <h3 class="text-sm font-semibold">Timeline</h3>
+      <button id="btnPlay" class="glass glass-hover w-8 h-8 rounded-lg flex items-center justify-center">
+        <svg id="playIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <svg id="pauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="hidden">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+      </button>
+      <button id="btnStop" class="glass glass-hover w-8 h-8 rounded-lg flex items-center justify-center">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="6" width="12" height="12"/>
+        </svg>
+      </button>
+      <button id="btnAddKeyframe" class="glass glass-hover px-3 py-1 rounded-lg text-xs font-medium">+ Keyframe</button>
+      <div class="flex-1"></div>
+      <div class="text-xs font-mono text-purple-300">
+        Time: <span id="timeVal">0.00s</span> / <span id="durationVal">10.00s</span>
+      </div>
+    </div>
+    <div class="relative">
+      <div id="timeline" class="relative h-12 bg-black/30 rounded-lg border border-purple-900/30 overflow-hidden cursor-pointer">
+        <div id="playhead" class="timeline-playhead absolute top-0 bottom-0 w-0.5 bg-purple-400 shadow-lg shadow-purple-500/50 z-20" style="left: 0%"></div>
+        <div id="keyframeTrack" class="absolute inset-0 z-10"></div>
+      </div>
+      <div class="flex justify-between mt-1 px-1 text-[10px] text-purple-400">
+        <span>0s</span>
+        <span>2.5s</span>
+        <span>5s</span>
+        <span>7.5s</span>
+        <span>10s</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<input type="file" id="presetInput" accept=".json" hidden>
+
+<script>
+const PRESETS = {
+  'Nitrogen Blue': [44, 123, 229],
+  '1=0=1 White-Gold': [255, 248, 220],
+  'Boron Orange': [255, 140, 0],
+  'Purple Neon': [168, 85, 247],
+  'Palladium Silver': [192, 192, 192],
+};
+
+class ChromaticEngine {
+  constructor() {
+    this.canvas = document.getElementById('glCanvas');
+    this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl');
+    if (!this.gl) {
+      this.showToast('WebGL not supported', 'error');
+      return;
+    }
+
+    this.state = {
+      layers: [
+        { id: 1, name: 'Base Layer', color: 'Nitrogen Blue', customHex: '#2C7BE5', opacity: 1.0, blendMode: 'normal', enabled: true },
+      ],
+      globals: {
+        thrust: 0.45,
+        density: 100,
+        cellSize: 20,
+        dispersion: 0.5,
+        bloom: 0.8,
+        chromatic: 0.02,
+        zoom: 1.0,
+        rotation: 0,
+      },
+      timeline: {
+        keyframes: [],
+        duration: 10.0,
+        currentTime: 0,
+        playing: false,
+      },
+      nextLayerId: 2,
+    };
+
+    this.time = 0;
+    this.lastTime = performance.now();
+    this.fps = 0;
+    this.frameCount = 0;
+    this.fpsUpdateTime = 0;
+    this.mimzyTexture = null;
+    this.mouseDown = false;
+    this.lastMouseX = 0;
+    this.draggedLayer = null;
+
+    this.initWebGL();
+    this.initControls();
+    this.initTimeline();
+    this.loadMimzyTexture();
+    this.updateUI();
+    this.animate();
+  }
+
+  initWebGL() {
+    const gl = this.gl;
+    const vsSource = `#version 300 es
+      in vec2 a_position;
+      in vec2 a_texCoord;
+      out vec2 v_texCoord;
+      uniform mat3 u_matrix;
+      void main() {
+        vec3 pos = u_matrix * vec3(a_position, 1.0);
+        gl_Position = vec4(pos.xy, 0, 1);
+        v_texCoord = a_texCoord;
+      }
+    `;
+
+    const fsSource = `#version 300 es
+      precision highp float;
+      in vec2 v_texCoord;
+      out vec4 fragColor;
+      uniform sampler2D u_mimzyTexture;
+      uniform float u_time;
+      uniform float u_thrust;
+      uniform float u_density;
+      uniform float u_cellSize;
+      uniform float u_dispersion;
+      uniform float u_bloom;
+      uniform float u_chromatic;
+      uniform vec3 u_layerColors[8];
+      uniform float u_layerOpacity[8];
+      uniform int u_layerEnabled[8];
+      uniform int u_layerCount;
+
+      vec2 hash22(vec2 p) {
+        p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+      }
+
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(mix(dot(hash22(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
+                         dot(hash22(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+                    mix(dot(hash22(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+                         dot(hash22(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
+      }
+
+      vec2 hexCoord(vec2 p) {
+        vec2 q = vec2(p.x * 2.0 * 0.8660254, p.y + p.x);
+        return floor(q + 0.5);
+      }
+
+      float hexDist(vec2 p) {
+        p = abs(p);
+        return max(dot(p, normalize(vec2(1.0, 1.73205))), p.x);
+      }
+
+      vec3 applyBloom(vec3 color, float intensity) {
+        return color * (1.0 + intensity);
+      }
+
+      void main() {
+        vec2 uv = v_texCoord;
+        vec2 center = vec2(0.5);
+        vec2 offset = uv - center;
+        
+        // Apply dispersion
+        float noiseVal = noise(uv * u_density * 0.1 + u_time * 0.1);
+        offset += vec2(noiseVal, noiseVal) * u_dispersion * 0.1;
+        
+        vec2 warpedUV = center + offset;
+        
+        // Hexagonal grid
+        vec2 hexUV = warpedUV * u_density / u_cellSize;
+        vec2 hexId = hexCoord(hexUV);
+        vec2 hexLocal = hexUV - hexId;
+        float hexMask = 1.0 - smoothstep(0.45, 0.5, hexDist(hexLocal));
+        
+        // Chromatic aberration
+        vec3 color = vec3(0.0);
+        float chroma = u_chromatic * u_thrust;
+        vec2 dir = normalize(warpedUV - center);
+        
+        float r = texture(u_mimzyTexture, warpedUV + dir * chroma).r;
+        float g = texture(u_mimzyTexture, warpedUV).g;
+        float b = texture(u_mimzyTexture, warpedUV - dir * chroma).b;
+        vec3 mimzyColor = vec3(r, g, b);
+        
+        // Layer blending
+        vec3 layerMix = vec3(0.0);
+        float totalWeight = 0.0;
+        for (int i = 0; i < 8; i++) {
+          if (i >= u_layerCount) break;
+          if (u_layerEnabled[i] == 0) continue;
+          layerMix += u_layerColors[i] / 255.0 * u_layerOpacity[i];
+          totalWeight += u_layerOpacity[i];
+        }
+        if (totalWeight > 0.0) {
+          layerMix /= totalWeight;
+          color = mix(mimzyColor, layerMix, 0.6);
+        } else {
+          color = mimzyColor;
+        }
+        
+        // Apply hex mask with edge glow
+        color *= hexMask;
+        color += hexMask * vec3(0.3, 0.1, 0.6) * u_bloom * 0.5;
+        
+        // Bloom
+        color = applyBloom(color, u_bloom);
+        
+        // Thrust effect - energy waves
+        float wave = sin(length(offset) * 20.0 - u_time * u_thrust * 5.0) * 0.5 + 0.5;
+        color += vec3(0.5, 0.2, 1.0) * wave * u_thrust * 0.2 * hexMask;
+        
+        // Vignette
+        float vignette = 1.0 - length(offset) * 0.6;
+        color *= vignette;
+        
+        fragColor = vec4(color, 1.0);
+      }
+    `;
+
+    const vertexShader = this.compileShader(gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = this.compileShader(gl.FRAGMENT_SHADER, fsSource);
+    this.program = this.createProgram(vertexShader, fragmentShader);
+
+    this.positionLocation = gl.getAttribLocation(this.program, 'a_position');
+    this.texCoordLocation = gl.getAttribLocation(this.program, 'a_texCoord');
+    
+    this.uniforms = {
+      matrix: gl.getUniformLocation(this.program, 'u_matrix'),
+      mimzyTexture: gl.getUniformLocation(this.program, 'u_mimzyTexture'),
+      time: gl.getUniformLocation(this.program, 'u_time'),
+      thrust: gl.getUniformLocation(this.program, 'u_thrust'),
+      density: gl.getUniformLocation(this.program, 'u_density'),
+      cellSize: gl.getUniformLocation(this.program, 'u_cellSize'),
+      dispersion: gl.getUniformLocation(this.program, 'u_dispersion'),
+      bloom: gl.getUniformLocation(this.program, 'u_bloom'),
+      chromatic: gl.getUniformLocation(this.program, 'u_chromatic'),
+      layerColors: gl.getUniformLocation(this.program, 'u_layerColors'),
+      layerOpacity: gl.getUniformLocation(this.program, 'u_layerOpacity'),
+      layerEnabled: gl.getUniformLocation(this.program, 'u_layerEnabled'),
+      layerCount: gl.getUniformLocation(this.program, 'u_layerCount'),
+    };
+
+    const positions = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+    const texCoords = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
+
+    this.positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+    this.texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+
+    gl.useProgram(this.program);
+    gl.uniform1i(this.uniforms.mimzyTexture, 0);
+  }
+
+  compileShader(type, source) {
+    const gl = this.gl;
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  createProgram(vs, fs) {
+    const gl = this.gl;
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(program));
+      return null;
+    }
+    return program;
+  }
+
+  loadMimzyTexture() {
+    const gl = this.gl;
+    const img = document.getElementById('mimzySource');
+    
+    const createFallbackTexture = () => {
+      const size = 512;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2);
+      gradient.addColorStop(0, '#a855f7');
+      gradient.addColorStop(0.5, '#7c3aed');
+      gradient.addColorStop(1, '#1e1b4b');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      return canvas;
+    };
+
+    this.mimzyTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.mimzyTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([44, 4, 18, 255]));
+    
+    img.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, this.mimzyTexture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    };
+    
+    img.onerror = () => {
+      const fallback = createFallbackTexture();
+      gl.bindTexture(gl.TEXTURE_2D, this.mimzyTexture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fallback);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    };
+
+    if (img.complete) img.onload();
+  }
+
+  initControls() {
+    const controls = ['thrust', 'density', 'cellSize', 'dispersion', 'bloom', 'chromatic', 'zoom', 'rotation'];
+    controls.forEach(key => {
+      const input = document.getElementById(key);
+      const display = document.getElementById(key + 'Val');
+      input.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        this.state.globals[key] = val;
+        this.updateDisplay(key, val, display);
+        if (key === 'zoom' || key === 'rotation') {
+          this.updateCoordsDisplay();
+        }
+      });
+    });
+
+    document.getElementById('btnAddLayer').addEventListener('click', () => this.addLayer());
+    document.getElementById('btnRandomize').addEventListener('click', () => this.randomize());
+    document.getElementById('btnSavePreset').addEventListener('click', () => this.savePreset());
+    document.getElementById('btnLoadPreset').addEventListener('click', () => document.getElementById('presetInput').click());
+    document.getElementById('presetInput').addEventListener('change', (e) => this.loadPreset(e));
+    document.getElementById('btnExportPNG').addEventListener('click', () => this.exportPNG());
+    document.getElementById('btnExportSVG').addEventListener('click', () => this.exportSVG());
+    document.getElementById('btnResetView').addEventListener('click', () => this.resetView());
+
+    this.canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -1 : 1;
+      const newZoom = Math.max(1, Math.min(100, this.state.globals.zoom + delta * 2));
+      this.state.globals.zoom = newZoom;
+      document.getElementById('zoom').value = newZoom;
+      this.updateDisplay('zoom', newZoom, document.getElementById('zoomVal2'));
+      this.updateCoordsDisplay();
+    });
+
+    window.addEventListener('resize', () => this.resize());
+    this.resize();
+  }
+
+  updateDisplay(key, val, display) {
+    const formats = {
+      thrust: v => `${v.toFixed(2)} N`,
+      density: v => `${Math.round(v)} cells`,
+      cellSize: v => `${Math.round(v)} px`,
+      dispersion: v => v.toFixed(2),
+      bloom: v => v.toFixed(2),
+      chromatic: v => v.toFixed(3),
+      zoom: v => `${v.toFixed(2)}x`,
+      rotation: v => `${Math.round(v)}°`,
+    };
+    display.textContent = formats[key](val);
+  }
+
+  updateCoordsDisplay() {
+    document.getElementById('zoomVal').textContent = `${this.state.globals.zoom.toFixed(1)}x`;
+    document.getElementById('rotVal').textContent = `${Math.round(this.state.globals.rotation)}°`;
+  }
+
+  resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = rect.width * dpr;
+    this.canvas.height = rect.height * dpr;
+    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  updateUI() {
+    this.renderLayers();
+    Object.keys(this.state.globals).forEach(key => {
+      const input = document.getElementById(key);
+      const display = document.getElementById(key + 'Val');
+      if (input && display) {
+        input.value = this.state.globals[key];
+        this.updateDisplay(key, this.state.globals[key], display);
+      }
+    });
+    this.updateCoordsDisplay();
+  }
+
+  renderLayers() {
+    const list = document.getElementById('layerList');
+    list.innerHTML = '';
+    this.state.layers.forEach((layer, idx) => {
+      const el = document.createElement('div');
+      el.className = 'layer-item glass glass-hover p-3 rounded-lg';
+      el.draggable = true;
+      el.dataset.id = layer.id;
+      const presetKeys = Object.keys(PRESETS);
+      const colorOptions = presetKeys.map(k => `<option value="${k}" ${layer.color === k ? 'selected' : ''}>${k}</option>`).join('') + `<option value="custom" ${layer.color === 'custom' ? 'selected' : ''}>Custom</option>`;
+      
+      el.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <div class="flex items-center gap-1 flex-1">
+            <input type="checkbox" ${layer.enabled ? 'checked' : ''} class="layer-toggle" data-id="${layer.id}">
+            <input type="text" value="${layer.name}" class="layer-name flex-1 text-sm bg-transparent border-none p-0" data-id="${layer.id}">
+          </div>
+          ${idx > 0 ? `<button class="layer-delete text-red-400 hover:text-red-300" data-id="${layer.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>` : ''}
+        </div>
+        <div class="space-y-2">
+          <select class="layer-color w-full text-xs" data-id="${layer.id}">${colorOptions}</select>
+          ${layer.color === 'custom' ? `<input type="color" value="${layer.customHex}" class="layer-hex w-full h-8 rounded cursor-pointer" data-id="${layer.id}">` : ''}
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-purple-300">Opacity</span>
+              <span class="font-mono">${layer.opacity.toFixed(2)}</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value="${layer.opacity}" class="layer-opacity w-full" data-id="${layer.id}">
+          </div>
+        </div>
+      `;
+      list.appendChild(el);
+
+      el.addEventListener('dragstart', (e) => { this.draggedLayer = layer.id; el.classList.add('dragging'); });
+      el.addEventListener('dragend', () => { el.classList.remove('dragging'); this.draggedLayer = null; });
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = this.getDragAfterElement(list, e.clientY);
+        if (afterElement == null) {
+          list.appendChild(el);
+        } else {
+          list.insertBefore(el, afterElement);
+        }
+      });
+      el.addEventListener('drop', () => this.reorderLayers());
+    });
+
+    list.querySelectorAll('.layer-toggle').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        const layer = this.state.layers.find(l => l.id === id);
+        layer.enabled = e.target.checked;
+      });
+    });
+
+    list.querySelectorAll('.layer-name').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        const layer = this.state.layers.find(l => l.id === id);
+        layer.name = e.target.value;
+      });
+    });
+
+    list.querySelectorAll('.layer-color').forEach(select => {
+      select.addEventListener('change', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        const layer = this.state.layers.find(l => l.id === id);
+        layer.color = e.target.value;
+        this.renderLayers();
+      });
+    });
+
+    list.querySelectorAll('.layer-hex').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        const layer = this.state.layers.find(l => l.id === id);
+        layer.customHex = e.target.value;
+      });
+    });
+
+    list.querySelectorAll('.layer-opacity').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const id = parseInt(e.target.dataset.id);
+        const layer = this.state.layers.find(l => l.id === id);
+        layer.opacity = parseFloat(e.target.value);
+        e.target.previousElementSibling.querySelector('span:last-child').textContent = layer.opacity.toFixed(2);
+      });
+    });
+
+    list.querySelectorAll('.layer-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(e.currentTarget.dataset.id);
+        this.deleteLayer(id);
+      });
+    });
+  }
+
+  getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.layer-item:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  reorderLayers() {
+    const list = document.getElementById('layerList');
+    const newOrder = [...list.querySelectorAll('.layer-item')].map(el => parseInt(el.dataset.id));
+    this.state.layers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+  }
+
+  addLayer() {
+    if (this.state.layers.length >= 8) {
+      this.showToast('Max 8 layers allowed', 'error');
+      return;
+    }
+    const presets = Object.keys(PRESETS);
+    this.state.layers.push({
+      id: this.state.nextLayerId++,
+      name: `Layer ${this.state.layers.length + 1}`,
+      color: presets[Math.floor(Math.random() * presets.length)],
+      customHex: '#a855f7',
+      opacity: 0.5,
+      blendMode: 'normal',
+      enabled: true,
+    });
+    this.renderLayers();
+  }
+
+  deleteLayer(id) {
+    this.state.layers = this.state.layers.filter(l => l.id !== id);
+    this.renderLayers();
+  }
+
+  randomize() {
+    this.state.globals.thrust = 0.45 + Math.random() * 5.45;
+    this.state.globals.density = 10 + Math.random() * 190;
+    this.state.globals.cellSize = 2 + Math.random() * 48;
+    this.state.globals.dispersion = Math.random() * 2;
+    this.state.globals.bloom = Math.random() * 2;
+    this.state.globals.chromatic = Math.random() * 0.1;
+    this.state.globals.rotation = Math.random() * 360;
+    this.updateUI();
+    this.showToast('Randomized all parameters');
+  }
+
+  resetView() {
+    this.state.globals.zoom = 1.0;
+    this.state.globals.rotation = 0;
+    this.updateUI();
+    this.showToast('View reset');
+  }
+
+  savePreset() {
+    const data = JSON.stringify(this.state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chromatic-preset-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.showToast('Preset saved');
+  }
+
+  loadPreset(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        this.state = data;
+        this.updateUI();
+        this.renderLayers();
+        this.showToast('Preset loaded');
+      } catch (err) {
+        this.showToast('Invalid preset file', 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  exportPNG() {
+    this.render();
+    this.canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chromatic-${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.showToast('PNG exported');
+    });
+  }
+
+  exportSVG() {
+    const w = 800, h = 600;
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+      <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="hex" x="0" y="0" width="60" height="52" patternUnits="userSpaceOnUse">
+            <path d="M15 0h30l15 26-15 26H15L0 26z" fill="none" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+          </pattern>
+          <radialGradient id="glow">
+            <stop offset="0%" stop-color="#a855f7" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#0a0412" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="${w}" height="${h}" fill="#0a0412"/>
+        <rect width="${w}" height="${h}" fill="url(#hex)" opacity="0.5"/>
+        <circle cx="${w/2}" cy="${h/2}" r="${w/3}" fill="url(#glow)" opacity="0.6"/>
+        <text x="${w/2}" y="${h/2}" text-anchor="middle" fill="#a855f7" font-family="Space Grotesk" font-size="24" font-weight="bold">Chromatic Engine</text>
+        <text x="${w/2}" y="${h/2 + 40}" text-anchor="middle" fill="#c4b5fd" font-family="Space Grotesk" font-size="14">
+          Thrust: ${this.state.globals.thrust.toFixed(2)}N | Density: ${Math.round(this.state.globals.density)}
+        </text>
+      </svg>`;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chromatic-${Date.now()}.svg`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.showToast('SVG exported');
+  }
+
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [168, 85, 247];
+  }
+
+  render() {
+    const gl = this.gl;
+    gl.clearColor(0.04, 0.016, 0.07, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(this.program);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.enableVertexAttribArray(this.positionLocation);
+    gl.vertexAttribPointer(this.positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+    gl.enableVertexAttribArray(this.texCoordLocation);
+    gl.vertexAttribPointer(this.texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+    const aspect = this.canvas.width / this.canvas.height;
+    const zoom = this.state.globals.zoom;
+    const rot = this.state.globals.rotation * Math.PI / 180;
+    const cos = Math.cos(rot) / zoom;
+    const sin = Math.sin(rot) / zoom;
+    const matrix = new Float32Array([
+      cos * (aspect > 1 ? 1/aspect : 1), -sin, 0,
+      sin, cos * (aspect < 1 ? aspect : 1), 0,
+      0, 0, 1
+    ]);
+
+    gl.uniformMatrix3fv(this.uniforms.matrix, false, matrix);
+    gl.uniform1f(this.uniforms.time, this.time);
+    gl.uniform1f(this.uniforms.thrust, this.state.globals.thrust);
+    gl.uniform1f(this.uniforms.density, this.state.globals.density);
+    gl.uniform1f(this.uniforms.cellSize, this.state.globals.cellSize);
+    gl.uniform1f(this.uniforms.dispersion, this.state.globals.dispersion);
+    gl.uniform1f(this.uniforms.bloom, this.state.globals.bloom);
+    gl.uniform1f(this.uniforms.chromatic, this.state.globals.chromatic);
+
+    const colors = new Float32Array(24);
+    const opacities = new Float32Array(8);
+    const enabled = new Int32Array(8);
+    
+    this.state.layers.forEach((layer, i) => {
+      const rgb = layer.color === 'custom' ? this.hexToRgb(layer.customHex) : PRESETS[layer.color];
+      colors[i * 3] = rgb[0];
+      colors[i * 3 + 1] = rgb[1];
+      colors[i * 3 + 2] = rgb[2];
+      opacities[i] = layer.opacity;
+      enabled[i] = layer.enabled ? 1 : 0;
+    });
+
+    gl.uniform3fv(this.uniforms.layerColors, colors);
+    gl.uniform1fv(this.uniforms.layerOpacity, opacities);
+    gl.uniform1iv(this.uniforms.layerEnabled, enabled);
+    gl.uniform1i(this.uniforms.layerCount, this.state.layers.length);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.mimzyTexture);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  initTimeline() {
+    const track = document.getElementById('keyframeTrack');
+    const playhead = document.getElementById('playhead');
+    const timeline = document.getElementById('timeline');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStop = document.getElementById('btnStop');
+    const btnAddKey = document.getElementById('btnAddKeyframe');
+
+    timeline.addEventListener('click', (e) => {
+      const rect = timeline.getBoundingClientRect();
+      const pct = (e.clientX - rect.left) / rect.width;
+      this.state.timeline.currentTime = pct * this.state.timeline.duration;
+      this.updatePlayhead();
+    });
+
+    btnPlay.addEventListener('click', () => {
+      this.state.timeline.playing = !this.state.timeline.playing;
+      document.getElementById('playIcon').classList.toggle('hidden', this.state.timeline.playing);
+      document.getElementById('pauseIcon').classList.toggle('hidden', !this.state.timeline.playing);
+    });
+
+    btnStop.addEventListener('click', () => {
+      this.state.timeline.playing = false;
+      this.state.timeline.currentTime = 0;
+      this.updatePlayhead();
+      document.getElementById('playIcon').classList.remove('hidden');
+      document.getElementById('pauseIcon').classList.add('hidden');
+    });
+
+    btnAddKey.addEventListener('click', () => {
+      this.state.timeline.keyframes.push({
+        time: this.state.timeline.currentTime,
+        state: JSON.parse(JSON.stringify(this.state.globals)),
+        id: Date.now()
+      });
+      this.state.timeline.keyframes.sort((a, b) => a.time - b.time);
+      this.renderKeyframes();
+      this.showToast('Keyframe added');
+    });
+
+    this.renderKeyframes();
+  }
+
+  updatePlayhead() {
+    const pct = this.state.timeline.currentTime / this.state.timeline.duration;
+    document.getElementById('playhead').style.left = `${pct * 100}%`;
+    document.getElementById('timeVal').textContent = `${this.state.timeline.currentTime.toFixed(2)}s`;
+  }
+
+  renderKeyframes() {
+    const track = document.getElementById('keyframeTrack');
+    track.innerHTML = '';
+    this.state.timeline.keyframes.forEach(kf => {
+      const el = document.createElement('div');
+      el.className = 'keyframe absolute top-1/2 -translate-y-1/2';
+      el.style.left = `${(kf.time / this.state.timeline.duration) * 100}%`;
+      el.title = `${kf.time.toFixed(2)}s`;
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Delete this keyframe?')) {
+          this.state.timeline.keyframes = this.state.timeline.keyframes.filter(k => k.id !== kf.id);
+          this.renderKeyframes();
+        }
+      });
+      track.appendChild(el);
+    });
+  }
+
+  interpolateKeyframes() {
+    if (this.state.timeline.keyframes.length < 2) return;
+    const t = this.state.timeline.currentTime;
+    let prev = null, next = null;
+    
+    for (let i = 0; i < this.state.timeline.keyframes.length; i++) {
+      if (this.state.timeline.keyframes[i].time <= t) prev = this.state.timeline.keyframes[i];
+      if (this.state.timeline.keyframes[i].time >= t && !next) next = this.state.timeline.keyframes[i];
+    }
+    
+    if (!prev || !next || prev === next) return;
+    
+    const alpha = (t - prev.time) / (next.time - prev.time);
+    Object.keys(this.state.globals).forEach(key => {
+      this.state.globals[key] = prev.state[key] + (next.state[key] - prev.state[key]) * alpha;
+    });
+    this.updateUI();
+  }
+
+  animate() {
+    const now = performance.now();
+    const delta = (now - this.lastTime) / 1000;
+    this.lastTime = now;
+    this.time += delta;
+
+    if (this.state.timeline.playing) {
+      this.state.timeline.currentTime += delta;
+      if (this.state.timeline.currentTime >= this.state.timeline.duration) {
+        this.state.timeline.currentTime = 0;
+      }
+      this.interpolateKeyframes();
+      this.updatePlayhead();
+    }
+
+    this.frameCount++;
+    if (now - this.fpsUpdateTime > 500) {
+      this.fps = Math.round(this.frameCount * 1000 / (now - this.fpsUpdateTime));
+      document.getElementById('fpsVal').textContent = this.fps;
+      this.frameCount = 0;
+      this.fpsUpdateTime = now;
+    }
+
+    this.render();
+    requestAnimationFrame(() => this.animate());
+  }
+
+  showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast glass px-4 py-3 rounded-lg flex items-center gap-2 ${type === 'error' ? 'border-red-500' : 'border-purple-500'}`;
+    toast.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        ${type === 'error' ? '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'}
+      </svg>
+      <span class="text-sm">${msg}</span>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  new ChromaticEngine();
+});
+</script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 # THE EMERGENT ENGINE — the live machinery of emergence
 
 [![License: CC-BY-ND-4.0](https://img.shields.io/badge/License-CC--BY--ND--4.0-lightgrey?style=flat-square)](LICENSE)
-[![Engines: 6](https://img.shields.io/badge/engines-7-ffb454?style=flat-square)](#the-engine-room)
-[![Rooms: 2](https://img.shields.io/badge/rooms-2-3fb950?style=flat-square)](#the-engine-room)
+[![Engines: 27](https://img.shields.io/badge/engines-27-ffb454?style=flat-square)](#the-engine-room)
+[![Rooms: 5](https://img.shields.io/badge/rooms-5-3fb950?style=flat-square)](#the-engine-room)
 [![Live](https://img.shields.io/badge/all-live-3fb950?style=flat-square)](https://davidwise01.github.io/emergent-engine/)
 
 > Each thumbnail is the engine running; open it to drive the full surface.
@@ -15,10 +15,13 @@
 
 | Room | | Engines |
 |------|---|---------|
-| **The Engines** | the running machinery | 1-Bit Engine (atomic · 4 gates + 2 observers) · Frak Engine (L1.35 · 254 emergents) · Alive Field — Restitution Engine Lab · Restitution Engine (Emergence Build) · 132 Toroids Ring (L1.01) |
-| **The Fields** | the substrate | 132-Bit Emergent (L1.00) · Deep Emergence Field |
+| **The Bit Engines** | the emergent, widened | 1-Bit · 8-Bit (L1.30) · 132-Bit Emergent (L1.00) · 132 Toroids Ring (L1.01) |
+| **The Restitution** | the engine that heals | Alive Field · Restitution Engine (Emergence Build) · Restitution v3 (Empire Ratio) · Restitution Lab v0.0 |
+| **The Engines** | the running machinery | Frak Engine (254 emergents) · Chaos Engine · Trinity Engine (Node-15) · Trinity v2 (Node-16) · Six-Point Coherence Cavity · 40D Final · D! · Full Pipeline · Deep Emergence Field |
+| **The Positronic** | the brain itself | Positronic Engine (fractal-toroidal) · WISE Positronic v03 · Positronic Brain v100 · Pulse Engines |
+| **The Forge** | the harder engines | Tritium Decay (H-3) · Knife-6 Atelier (180fps) · Knife-6 Renderer v2 · Chromatic Engine · Chromatic Mirror · Schumann Receiver (7.83 Hz) |
 
-**7 engines · 2 rooms · all live.** Each is a self-contained interactive HTML engine in [`engines/`](engines); the landing page renders a live lazy `<iframe>` of each running piece.
+**27 engines · 5 rooms · all live.** Each is a self-contained interactive HTML engine in [`engines/`](engines); the landing page renders a live lazy `<iframe>` of each running piece. `build.py` supports a per-piece `src` so engines living in other source folders fold cleanly into the theater.
 
 ## How it works
 

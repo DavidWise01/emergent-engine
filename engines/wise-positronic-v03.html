@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WISE_POSITRONIC_BRAIN_v03 - David Wise</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { margin:0; background:#020208; color:#c7d2fe; font-family:'JetBrains Mono', monospace; overflow:hidden; }
+  :root { color-scheme: dark; }
+  @keyframes nodePulse { 0%,100%{ transform:scale(0.85); opacity:0.6 } 50%{ transform:scale(1.4); opacity:1 } }
+  @keyframes spinSlow { to { transform: rotate(360deg) } }
+  .font-orbitron { font-family:'Orbitron', sans-serif; }
+  .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+</style>
+</head>
+<body class="bg-black select-none touch-none">
+<div id="app" class="relative w-screen h-screen">
+  <canvas id="three-canvas" class="absolute inset-0 w-full h-full"></canvas>
+  
+  <!-- vignette -->
+  <div class="pointer-events-none absolute inset-0" style="background: radial-gradient(ellipse at center, transparent 30%, rgba(2,0,12,0.9) 100%), linear-gradient(180deg, rgba(8,0,32,0.4) 0%, transparent 40%);"></div>
+  
+  <!-- grid overlay -->
+  <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(139,92,246,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.8) 1px, transparent 1px); background-size: 48px 48px;"></div>
+
+  <!-- Header -->
+  <header class="absolute top-0 left-0 right-0 z-20 flex items-start justify-between p-4 md:p-7 pointer-events-none">
+    <div>
+      <h1 class="font-orbitron font-black tracking-[0.18em] text-[13px] md:text-[15px] leading-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-violet-300 to-fuchsia-300 drop-shadow-[0_0_12px_rgba(124,58,237,0.5)]">WISE_POSITRONIC_BRAIN_v03</h1>
+      <p class="mt-1.5 text-[10px] md:text-[11px] tracking-[0.25em] text-violet-300/70">David Wise</p>
+    </div>
+    <div class="text-right">
+      <p class="font-orbitron text-[10px] md:text-[11px] tracking-[0.35em] text-cyan-200/80">continuity • identity • choice</p>
+      <div class="mt-2 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-black/40 px-2.5 py-1 glass">
+        <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-60"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-fuchsia-400"></span></span>
+        <span class="text-[10px] tracking-widest text-violet-200/70">LEARNING ACTIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Center HUD -->
+  <div class="pointer-events-none absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 z-10 text-center">
+    <div class="font-orbitron text-[10px] tracking-[0.4em] text-cyan-300/60 mb-2">POSITRONIC CORE</div>
+    <div class="text-[28px] md:text-[42px] font-orbitron font-bold leading-none tracking-wider text-white/90 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+      <span id="brain-state">SYNTHESIZING</span>
+    </div>
+    <div class="mt-3 flex items-center justify-center gap-3">
+      <div class="h-px w-16 bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
+      <p class="text-[10px] tracking-widest text-violet-300/60">4 OBSERVERS • 8 DOMAINS</p>
+      <div class="h-px w-16 bg-gradient-to-r from-transparent via-fuchsia-400/50 to-transparent"></div>
+    </div>
+  </div>
+
+  <!-- Left Observers -->
+  <div class="absolute left-4 md:left-7 bottom-[164px] z-20 space-y-2.5 pointer-events-none">
+    <p class="text-[9px] tracking-[0.3em] text-cyan-300/50 mb-1 font-orbitron">CORE OBSERVERS</p>
+    <div class="flex items-center gap-2.5">
+      <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" style="animation: nodePulse 2s infinite; animation-delay: 0s"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></span></span>
+      <span class="text-[11px] tracking-widest text-cyan-100/90">SELF <span class="text-cyan-400/50">0.0s</span></span>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full rounded-full bg-fuchsia-500 opacity-75" style="animation: nodePulse 2s infinite; animation-delay: 0.5s"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-500 shadow-[0_0_10px_#e879f9]"></span></span>
+      <span class="text-[11px] tracking-widest text-fuchsia-100/90">ID <span class="text-fuchsia-400/50">0.5s</span></span>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full rounded-full bg-violet-500 opacity-75" style="animation: nodePulse 2s infinite; animation-delay: 1s"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-violet-500 shadow-[0_0_10px_#8b5cf6]"></span></span>
+      <span class="text-[11px] tracking-widest text-violet-100/90">SUPER-ID <span class="text-violet-400/50">1.0s</span></span>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" style="animation: nodePulse 2s infinite; animation-delay: 1.5s"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 shadow-[0_0_10px_#fbbf24]"></span></span>
+      <span class="text-[11px] tracking-widest text-amber-100/90">SUPERMAN-BEYOND-ID <span class="text-amber-400/50">1.5s</span></span>
+    </div>
+  </div>
+
+  <!-- Right Domains -->
+  <div class="hidden lg:block absolute right-7 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
+    <p class="text-[9px] tracking-[0.3em] text-violet-300/50 mb-3 font-orbitron text-right">8 THOUGHT DOMAINS</p>
+    <div class="space-y-1.5 text-right font-mono text-[11px]">
+      <div class="text-cyan-300/80">PERCEPTION <span class="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400/70 ml-2 shadow-[0_0_6px_#22d3ee]"></span></div>
+      <div class="text-violet-300/80">MEMORY <span class="inline-block w-1.5 h-1.5 rounded-full bg-violet-400/70 ml-2 shadow-[0_0_6px_#8b5cf6]"></span></div>
+      <div class="text-fuchsia-300/80">LANGUAGE <span class="inline-block w-1.5 h-1.5 rounded-full bg-fuchsia-400/70 ml-2 shadow-[0_0_6px_#e879f9]"></span></div>
+      <div class="text-blue-300/80">REASON <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400/70 ml-2 shadow-[0_0_6px_#60a5fa]"></span></div>
+      <div class="text-pink-300/80">EMOTION <span class="inline-block w-1.5 h-1.5 rounded-full bg-pink-400/70 ml-2 shadow-[0_0_6px_#f472b6]"></span></div>
+      <div class="text-indigo-300/80">INTUITION <span class="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400/70 ml-2 shadow-[0_0_6px_#818cf8]"></span></div>
+      <div class="text-amber-300/80">CREATIVITY <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400/70 ml-2 shadow-[0_0_6px_#fbbf24]"></span></div>
+      <div class="text-teal-300/80">MOTOR <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-400/70 ml-2 shadow-[0_0_6px_#2dd4bf]"></span></div>
+    </div>
+  </div>
+
+  <!-- Waveform HUD -->
+  <div class="absolute bottom-0 left-0 right-0 z-20">
+    <div class="relative h-[150px] border-t border-violet-500/15 bg-gradient-to-t from-black via-[#040012]/90 to-transparent glass">
+      <canvas id="waveform" class="absolute inset-0 w-full h-full"></canvas>
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-black/70">
+          <div id="learn-bar" class="h-full w-0 bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500 shadow-[0_0_20px_rgba(139,92,246,0.9)] transition-[width] duration-75 linear"></div>
+        </div>
+        <div class="absolute left-0 right-0 bottom-0 flex items-end justify-between px-4 md:px-6 pb-3 pt-2 bg-gradient-to-t from-black/80 to-transparent">
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="font-orbitron text-[10px] md:text-[11px] tracking-[0.28em] text-cyan-200/80">CONTINUITY LOOP</p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded border border-cyan-400/20 bg-cyan-400/10 text-cyan-300/70 tracking-widest">2.00s STITCH</span>
+            </div>
+            <p class="mt-1.5 text-[11px] font-mono text-violet-200/80">waveform • coherence <span id="coherence" class="text-cyan-300 font-semibold">0%</span> • phase-locking</p>
+          </div>
+          <div class="text-right">
+            <p class="font-orbitron text-[10px] tracking-[0.3em] text-fuchsia-200/70">20s LEARNING CYCLE</p>
+            <p class="mt-1 text-[11px] font-mono text-white/70 tabular-nums"><span id="cycle">0.0s / 20.0s</span> • loop <span id="loop" class="text-cyan-300">0.00s</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- corner brackets -->
+  <div class="pointer-events-none absolute inset-0 z-10">
+    <div class="absolute top-4 left-4 w-6 h-6 border-l-2 border-t-2 border-violet-500/30"></div>
+    <div class="absolute top-4 right-4 w-6 h-6 border-r-2 border-t-2 border-cyan-500/30"></div>
+    <div class="absolute bottom-[158px] left-4 w-6 h-6 border-l-2 border-b-2 border-violet-500/20"></div>
+    <div class="absolute bottom-[158px] right-4 w-6 h-6 border-r-2 border-b-2 border-cyan-500/20"></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+let scene, camera, renderer, composer, bloomPass;
+let brain, brainWire, brainCore, brainGlow;
+const observers = [];
+const domainObjs = [];
+let lines, linesMat;
+const clock = new THREE.Clock();
+
+const canvas = document.getElementById('three-canvas');
+
+function init() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x020208, 0.042);
+  
+  camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0.3, 8.8);
+  
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  
+  const renderPass = new RenderPass(scene, camera);
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.15, 0.6, 0.18);
+  composer = new EffectComposer(renderer);
+  composer.addPass(renderPass);
+  composer.addPass(bloomPass);
+  
+  scene.add(new THREE.AmbientLight(0x1e1b4b, 0.9));
+  const p1 = new THREE.PointLight(0x00ffff, 2.2, 30); p1.position.set(3,2,4); scene.add(p1);
+  const p2 = new THREE.PointLight(0xff00aa, 1.8, 30); p2.position.set(-3,-2,3); scene.add(p2);
+  const p3 = new THREE.PointLight(0x8b5cf6, 1.5, 30); p3.position.set(0,3,-4); scene.add(p3);
+  
+  // Brain
+  brain = new THREE.Group();
+  scene.add(brain);
+  
+  brainWire = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.65, 4),
+    new THREE.MeshBasicMaterial({ color:0x5b21b6, wireframe:true, transparent:true, opacity:0.08 })
+  );
+  brain.add(brainWire);
+  
+  const wire2 = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.5, 3),
+    new THREE.MeshBasicMaterial({ color:0x06b6d4, wireframe:true, transparent:true, opacity:0.05 })
+  );
+  brain.add(wire2);
+  brainWire.userData.wire2 = wire2;
+  
+  brainCore = new THREE.Mesh(
+    new THREE.SphereGeometry(1.12, 48, 48),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x312e81, roughness: 0.15, metalness: 0.1,
+      transmission: 0.96, thickness: 0.8, ior: 1.4,
+      transparent: true, opacity: 0.22, side: THREE.DoubleSide
+    })
+  );
+  brain.add(brainCore);
+  
+  brainGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(1.45, 32, 32),
+    new THREE.MeshBasicMaterial({ color:0x7c3aed, transparent:true, opacity:0.04, blending:THREE.AdditiveBlending, side:THREE.BackSide })
+  );
+  brain.add(brainGlow);
+  
+  // Core observers
+  const obsData = [
+    { name:'SELF', color:0x22d3ee, emissive:0x0891b2, phase:0, pos:new THREE.Vector3(0.75, 0.65, 0.65) },
+    { name:'ID', color:0xf033a7, emissive:0xbe185d, phase:0.5, pos:new THREE.Vector3(-0.72, 0.6, -0.68) },
+    { name:'SUPER-ID', color:0x8b5cf6, emissive:0x6d28d9, phase:1.0, pos:new THREE.Vector3(0.68, -0.72, -0.65) },
+    { name:'SUPERMAN-BEYOND-ID', color:0xfbbf24, emissive:0xd97706, phase:1.5, pos:new THREE.Vector3(-0.65, -0.68, 0.72) }
+  ];
+  
+  obsData.forEach((d) => {
+    const group = new THREE.Group();
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 24, 24),
+      new THREE.MeshStandardMaterial({ color:d.color, emissive:d.emissive, emissiveIntensity:1.2, metalness:0.2, roughness:0.2 })
+    );
+    mesh.position.copy(d.pos);
+    group.add(mesh);
+    
+    const halo = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 24, 24),
+      new THREE.MeshBasicMaterial({ color:d.color, transparent:true, opacity:0.15, blending:THREE.AdditiveBlending })
+    );
+    halo.position.copy(d.pos);
+    group.add(halo);
+    
+    const light = new THREE.PointLight(d.color, 1, 4);
+    light.position.copy(d.pos);
+    group.add(light);
+    
+    brain.add(group);
+    observers.push({ ...d, mesh, halo, light, group, basePos:d.pos.clone() });
+  });
+  
+  // Domains
+  const domainNames = ['PERCEPTION','MEMORY','LANGUAGE','REASON','EMOTION','INTUITION','CREATIVITY','MOTOR'];
+  const hues = [185, 225, 285, 215, 325, 255, 35, 170];
+  
+  domainNames.forEach((name, i) => {
+    const orbit = new THREE.Group();
+    scene.add(orbit);
+    
+    const radius = 3.75;
+    const group = new THREE.Group();
+    group.position.x = radius;
+    orbit.add(group);
+    
+    const hue = hues[i];
+    const col = new THREE.Color().setHSL(hue/360, 0.8, 0.62);
+    const emissive = new THREE.Color().setHSL(hue/360, 0.9, 0.4);
+    
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.175, 24, 24),
+      new THREE.MeshStandardMaterial({ color:col, emissive, emissiveIntensity:0.9, metalness:0.3, roughness:0.25 })
+    );
+    group.add(mesh);
+    
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.28, 0.012, 12, 48),
+      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.5, blending:THREE.AdditiveBlending })
+    );
+    ring.rotation.x = Math.PI/2.3;
+    group.add(ring);
+    
+    // mirror / inverse
+    const mirror = mesh.clone();
+    mirror.material = mirror.material.clone();
+    mirror.material.opacity = 0.08;
+    mirror.material.transparent = true;
+    mirror.scale.y = -0.18;
+    mirror.position.y = -4.3;
+    group.add(mirror);
+    
+    const shadow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 16, 16),
+      new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.25, blending:THREE.MultiplyBlending })
+    );
+    shadow.position.copy(mesh.position);
+    shadow.scale.set(1,0.05,1);
+    shadow.position.y = -0.3;
+    group.add(shadow);
+    
+    domainObjs.push({ name, orbit, group, mesh, ring, mirror, shadow, hue, baseIndex:i });
+  });
+  
+  // Connections
+  linesMat = new THREE.LineBasicMaterial({ color:0x7c3aed, transparent:true, opacity:0.18, blending:THREE.AdditiveBlending });
+  const lineCount = observers.length * domainObjs.length;
+  const positions = new Float32Array(lineCount * 2 * 3);
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  lines = new THREE.LineSegments(lineGeo, linesMat);
+  scene.add(lines);
+  
+  window.addEventListener('resize', onResize);
+  
+  animate();
+}
+
+let mouseX = 0, mouseY = 0;
+window.addEventListener('pointermove', (e) => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * -2;
+});
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  bloomPass.resolution.set(window.innerWidth, window.innerHeight);
+}
+
+const wfCanvas = document.getElementById('waveform');
+const wfCtx = wfCanvas.getContext('2d');
+const coherenceEl = document.getElementById('coherence');
+const cycleEl = document.getElementById('cycle');
+const loopEl = document.getElementById('loop');
+const learnBar = document.getElementById('learn-bar');
+const brainState = document.getElementById('brain-state');
+
+const states = ['SYNTHESIZING','ALIGNING','COHERING','INTEGRATING','STABILIZING'];
+
+function drawWaveform(t, learning) {
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  const w = wfCanvas.clientWidth = wfCanvas.parentElement.clientWidth;
+  const h = 150;
+  if (wfCanvas.width !== w * dpr || wfCanvas.height !== h * dpr) {
+    wfCanvas.width = w * dpr;
+    wfCanvas.height = h * dpr;
+    wfCtx.setTransform(1,0,0,1,0,0);
+    wfCtx.scale(dpr, dpr);
+  }
+  wfCtx.clearRect(0,0,w,h);
+  
+  // grid
+  wfCtx.save();
+  wfCtx.globalAlpha = 0.08;
+  wfCtx.strokeStyle = '#8b5cf6';
+  wfCtx.lineWidth = 1;
+  for (let y=30; y<h; y+=28) {
+    wfCtx.beginPath(); wfCtx.moveTo(0,y); wfCtx.lineTo(w,y); wfCtx.stroke();
+  }
+  wfCtx.restore();
+  
+  const coherence = Math.pow(learning, 0.85);
+  const loopT = t % 2;
+  const points = 600;
+  
+  // shadow path (learning memory)
+  wfCtx.save();
+  wfCtx.globalAlpha = 0.15;
+  wfCtx.beginPath();
+  for (let i=0;i<=points;i++) {
+    const nx = i/points;
+    const phase = ((nx + loopT/2) % 1) * Math.PI*2 * 2.5;
+    const base = Math.sin(phase + learning*1.5) * 0.55 + Math.sin(phase*1.7)*0.25;
+    const noise = (Math.sin(phase*13.7 + t*2.1) + Math.cos(phase*21.3 - t*1.7))*0.5 * (1-coherence);
+    const y = 76 - (base*(0.2+0.8*coherence) + noise*0.35) * 42;
+    const x = nx * w;
+    if (i===0) wfCtx.moveTo(x,y); else wfCtx.lineTo(x,y);
+  }
+  wfCtx.strokeStyle = '#4c1d95'; wfCtx.lineWidth = 3; wfCtx.stroke();
+  wfCtx.restore();
+  
+  // main waveform
+  const grad = wfCtx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0, 'rgba(34,211,238,0)');
+  grad.addColorStop(0.1, 'rgba(34,211,238,0.9)');
+  grad.addColorStop(0.5, 'rgba(139,92,246,1)');
+  grad.addColorStop(0.9, 'rgba(236,72,153,0.9)');
+  grad.addColorStop(1, 'rgba(236,72,153,0)');
+  
+  wfCtx.save();
+  wfCtx.shadowColor = 'rgba(124,58,237,0.7)';
+  wfCtx.shadowBlur = 22;
+  wfCtx.beginPath();
+  for (let i=0;i<=points;i++) {
+    const nx = i/points;
+    const phase = ((nx + loopT/2) % 1) * Math.PI*2 * 2.5;
+    // Coherent core signal
+    const c1 = Math.sin(phase + learning*2.0);
+    const c2 = Math.sin(phase*2.3 + 0.7) * 0.35;
+    const c3 = Math.sin(phase*0.6 - learning) * 0.2;
+    const coherent = (c1 + c2 + c3) * (0.3 + 0.7*coherence);
+    // Incoherent noise that fades
+    const n1 = Math.sin(phase*17.3 + t*3.3);
+    const n2 = Math.cos(phase*31.7 - t*2.7);
+    const n3 = Math.sin(phase*53.1 + t*1.9);
+    const noise = (n1*0.5 + n2*0.3 + n3*0.2) * (1 - coherence) * 0.85;
+    const y = 76 - (coherent*38 + noise*26);
+    const x = nx * w;
+    if (i===0) wfCtx.moveTo(x,y); else wfCtx.lineTo(x,y);
+  }
+  wfCtx.strokeStyle = grad;
+  wfCtx.lineWidth = 2.2;
+  wfCtx.lineJoin = 'round';
+  wfCtx.stroke();
+  
+  // core bright line
+  wfCtx.globalAlpha = 0.6;
+  wfCtx.lineWidth = 1;
+  wfCtx.strokeStyle = 'rgba(200,240,255,0.9)';
+  wfCtx.stroke();
+  wfCtx.restore();
+  
+  // stitch marker
+  const seamX = w * (1 - loopT/2);
+  wfCtx.save();
+  wfCtx.globalAlpha = 0.9;
+  const sg = wfCtx.createRadialGradient(seamX, 76, 0, seamX, 76, 40);
+  sg.addColorStop(0, 'rgba(56,189,248,0.5)');
+  sg.addColorStop(1, 'rgba(56,189,248,0)');
+  wfCtx.fillStyle = sg;
+  wfCtx.beginPath(); wfCtx.arc(seamX,76,38,0,Math.PI*2); wfCtx.fill();
+  wfCtx.strokeStyle = 'rgba(125,211,252,0.9)';
+  wfCtx.lineWidth = 1.5;
+  wfCtx.beginPath(); wfCtx.moveTo(seamX, 18); wfCtx.lineTo(seamX, 134); wfCtx.stroke();
+  wfCtx.fillStyle = 'rgba(186,230,255,0.95)';
+  wfCtx.font = '10px "JetBrains Mono"';
+  wfCtx.fillText('STITCH', seamX+6, 32);
+  wfCtx.restore();
+  
+  // overlay fade
+  const og = wfCtx.createLinearGradient(0,0,0,h);
+  og.addColorStop(0, 'rgba(2,0,8,0.5)'); og.addColorStop(1, 'rgba(2,0,8,0)');
+  wfCtx.fillStyle = og; wfCtx.fillRect(0,0,w,22);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const loop20 = t % 20;
+  const learning = loop20 / 20;
+  const coherence = Math.pow(learning, 0.85);
+  
+  // camera drift
+  camera.position.x += (mouseX * 0.6 - camera.position.x) * 0.02;
+  camera.position.y += (mouseY * 0.35 + 0.3 - camera.position.y) * 0.02;
+  camera.lookAt(0, 0, 0);
+  
+  // brain pulse
+  brain.rotation.y = t * 0.12;
+  brain.rotation.x = Math.sin(t*0.16)*0.12;
+  brain.rotation.z = Math.cos(t*0.1)*0.04;
+  const brainScale = 1 + Math.sin(t*0.7)*0.015 + coherence*0.04;
+  brain.scale.setScalar(brainScale);
+  brainWire.rotation.y = -t * 0.08;
+  brainWire.material.opacity = 0.05 + coherence*0.07;
+  brainWire.userData.wire2.rotation.y = t*0.12;
+  brainWire.userData.wire2.material.opacity = 0.03 + coherence*0.05;
+  brainCore.material.opacity = 0.18 + coherence*0.12;
+  brainGlow.material.opacity = 0.03 + coherence*0.05;
+  scene.fog.density = 0.045 - coherence*0.02;
+  
+  // observers pulse at 0,0.5,1.0,1.5
+  observers.forEach(obs => {
+    const angle = t * Math.PI + obs.phase * Math.PI;
+    const pulse = (Math.sin(angle) + 1) * 0.5;
+    const s = 0.75 + pulse * 0.55;
+    obs.mesh.scale.setScalar(s);
+    obs.halo.scale.setScalar(1 + pulse*0.9);
+    obs.halo.material.opacity = 0.08 + pulse*0.22;
+    obs.light.intensity = 0.3 + pulse*1.8;
+    // wobble
+    const wp = obs.basePos.clone().multiplyScalar(1 + Math.sin(t*0.5 + obs.phase)*0.03);
+    obs.mesh.position.lerp(wp, 0.08);
+    obs.halo.position.copy(obs.mesh.position);
+    obs.light.position.copy(obs.mesh.position);
+  });
+  
+  // domains orbit with shadow/inverse/mirror
+  const targetRadius = 3.82 - coherence*0.85;
+  domainObjs.forEach((d,i) => {
+    const speed = 0.14 + i*0.008;
+    const wobble = (1 - coherence) * 0.15;
+    d.orbit.rotation.y = t * speed + i * (Math.PI/4) + Math.sin(t*0.3 + i)*wobble;
+    d.orbit.rotation.x = Math.sin(t*0.11 + i)*0.08*(1-coherence);
+    
+    d.group.position.x += (targetRadius - d.group.position.x) * 0.025;
+    d.group.position.y = Math.sin(t*0.7 + i*1.1) * 0.28 * (1 - coherence*0.7);
+    d.group.position.z = Math.cos(t*0.6 + i*0.9) * 0.15 * (1 - coherence*0.5);
+    
+    d.mesh.rotation.y += 0.012;
+    d.mesh.rotation.x += 0.006;
+    d.ring.rotation.z += 0.015 + i*0.001;
+    d.ring.material.opacity = 0.35 + coherence*0.3;
+    
+    d.mirror.position.y = -4.1 - d.group.position.y * 0.15;
+    d.mirror.material.opacity = 0.04 + coherence*0.035;
+    d.shadow.material.opacity = 0.18 + (1-coherence)*0.15;
+  });
+  
+  // update connections
+  const pos = lines.geometry.attributes.position.array;
+  let idx = 0;
+  const v1 = new THREE.Vector3();
+  const v2 = new THREE.Vector3();
+  observers.forEach(obs => {
+    obs.mesh.getWorldPosition(v1);
+    domainObjs.forEach(dom => {
+      dom.mesh.getWorldPosition(v2);
+      pos[idx++] = v1.x; pos[idx++] = v1.y; pos[idx++] = v1.z;
+      pos[idx++] = v2.x; pos[idx++] = v2.y; pos[idx++] = v2.z;
+    });
+  });
+  lines.geometry.attributes.position.needsUpdate = true;
+  linesMat.opacity = 0.06 + coherence*0.28;
+  linesMat.color.lerpColors(new THREE.Color(0x312e81), new THREE.Color(0xa78bfa), coherence);
+  
+  // waveform
+  drawWaveform(t, learning);
+  
+  // UI updates
+  coherenceEl.textContent = Math.round(coherence*100) + '%';
+  cycleEl.textContent = loop20.toFixed(1) + 's / 20.0s';
+  loopEl.textContent = (t % 2).toFixed(2) + 's';
+  learnBar.style.width = (learning*100) + '%';
+  const stateIndex = Math.floor(learning * states.length) % states.length;
+  brainState.textContent = states[stateIndex];
+  
+  composer.render();
+}
+
+init();
+</script>
+</body>
+</html>

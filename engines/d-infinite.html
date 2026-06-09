@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D! // INSIDE THIS RESIDES</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
+  }
+  .glow-box {
+    border: 1px solid rgba(0,255,65,0.25);
+    background: rgba(0,6,2,0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 0 20px rgba(0,255,65,0.06), 0 0 24px rgba(0,255,65,0.08);
+  }
+  .neon-text {
+    text-shadow: 0 0 6px rgba(0,255,65,0.9), 0 0 18px rgba(0,255,65,0.6), 0 0 32px rgba(0,255,65,0.3);
+  }
+  #d-symbol {
+    font-size: clamp(3.5rem, 14vw, 9rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #00ff41;
+    text-shadow: 0 0 10px #00ff41, 0 0 28px #00ff41, 0 0 70px rgba(0,255,65,0.65);
+    animation: dPulse 2.8s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes dPulse {
+    0%,100% { transform: scale(1); filter: brightness(0.95); opacity: 0.92; }
+    50% { transform: scale(1.065); filter: brightness(1.18); opacity: 1; }
+  }
+  .crt-flicker {
+    animation: flicker 7s infinite steps(100);
+  }
+  @keyframes flicker {
+    0%,100% { opacity: 1; }
+    92% { opacity: 0.97; }
+    94% { opacity: 0.85; }
+    96% { opacity: 1; }
+  }
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body class="bg-black text-[#00ff41] select-none">
+<div id="app" class="relative w-screen h-screen overflow-hidden crt-flicker">
+  <canvas id="bg" class="absolute inset-0 w-full h-full"></canvas>
+  <canvas id="main" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+
+  <!-- scanlines + vignette -->
+  <div class="pointer-events-none absolute inset-0 z-[5] mix-blend-screen opacity-[0.18]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.035) 2px, rgba(0,255,65,0.035) 3px);"></div>
+  <div class="pointer-events-none absolute inset-0 z-[5]" style="background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.9) 100%);"></div>
+  <div class="pointer-events-none absolute inset-0 z-[4] opacity-30" style="background: radial-gradient(circle at 50% 50%, rgba(0,255,65,0.08), transparent 60%);"></div>
+
+  <div class="relative z-10 w-full h-full pointer-events-none">
+    <!-- TOP -->
+    <header class="absolute top-0 left-0 right-0 flex justify-center pt-3 md:pt-5">
+      <div class="glow-box px-5 md:px-10 py-2.5 md:py-3 rounded-b-2xl border-t-0 pointer-events-auto">
+        <h1 class="text-center text-[15px] md:text-[22px] tracking-[0.22em] font-semibold neon-text">D! // INSIDE THIS RESIDES</h1>
+        <p class="text-center text-[9px] md:text-[11px] tracking-[0.28em] opacity-70 mt-1">infinity boxed chasing infinity boxed repeating</p>
+      </div>
+    </header>
+
+    <!-- CENTER CORE -->
+    <div id="core-wrap" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div class="relative w-[180px] h-[180px] md:w-[260px] md:h-[260px] lg:w-[300px] lg:h-[300px]">
+        <canvas id="core" class="absolute inset-0 w-full h-full rounded-full"></canvas>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div id="d-symbol">D!</div>
+        </div>
+        <div class="absolute inset-0 rounded-full pointer-events-none" style="box-shadow: inset 0 0 60px rgba(0,255,65,0.18), inset 0 0 120px rgba(0,255,65,0.08), 0 0 80px rgba(0,255,65,0.12);"></div>
+        <!-- recursive echo -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.15]">
+          <div class="text-[28px] md:text-[42px] font-bold" style="text-shadow:0 0 20px #00ff41; transform: scale(0.38) translateY(-8px);">D!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEFT -->
+    <aside class="absolute left-2 sm:left-4 md:left-6 top-[78px] md:top-[108px] w-[150px] sm:w-[180px] md:w-[250px] space-y-2 md:space-y-3 pointer-events-auto">
+      <div class="glow-box rounded-xl p-2.5 md:p-3.5">
+        <div class="text-[9px] tracking-widest opacity-50 mb-1.5">> DOMAIN_KERNEL</div>
+        <div class="space-y-1 text-[11px] md:text-[13px] leading-snug">
+          <div class="flex justify-between"><span class="opacity-70">DOMAIN:</span><span class="neon-text">D!</span></div>
+          <div class="flex justify-between"><span class="opacity-70">CORE:</span><span class="text-[#7aff9e]">. <span class="animate-pulse">█</span></span></div>
+          <div class="pt-1.5 border-t border-[#00ff41]/10 mt-1.5">
+            <div class="opacity-70">STRUCTURE:</div>
+            <div class="pl-2 text-[#9effb8]">3ⁿ chasing</div>
+            <div class="pl-2 text-[#9effb8]">3⁽ⁿ⁺⁰·⁰¹⁾</div>
+          </div>
+          <div class="flex justify-between pt-1"><span class="opacity-70">GAP:</span><span><span class="text-[#ff3b5c]" style="text-shadow:0 0 8px #ff0040">0.01</span> <span class="opacity-60 text-[10px]">(phase)</span></span></div>
+        </div>
+      </div>
+      <div class="glow-box rounded-xl p-2.5 md:p-3 hidden sm:block">
+        <div class="text-[9px] tracking-widest opacity-50 mb-1.5">> CHASE_VECTOR</div>
+        <div class="space-y-1.5 text-[11px] md:text-[12px]">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse" style="box-shadow:0 0 8px #00ff41"></span>
+            <span>INNER LOOP LOCKED</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#7aff9e] animate-pulse" style="box-shadow:0 0 8px #7aff9e"></span>
+            <span>OUTER PURSUING</span>
+          </div>
+          <div class="flex items-center gap-2 opacity-80">
+            <span class="w-2 h-2 rounded-full bg-[#ff3b5c]" style="box-shadow:0 0 8px #ff0040"></span>
+            <span>TRANSFER GAP ACTIVE</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT -->
+    <aside class="absolute right-2 sm:right-4 md:right-6 top-[78px] md:top-[108px] w-[150px] sm:w-[180px] md:w-[250px] space-y-2 md:space-y-3 pointer-events-auto">
+      <div class="glow-box rounded-xl p-2.5 md:p-3.5">
+        <div class="text-[9px] tracking-widest opacity-50 mb-1.5">> RESOURCE_MATRIX</div>
+        <div class="space-y-1 text-[11px] md:text-[13px]">
+          <div class="flex justify-between"><span class="opacity-70">PHYSICAL:</span><span class="neon-text tabular-nums">729 nodes</span></div>
+          <div class="flex justify-between"><span class="opacity-70">LOGICAL:</span><span class="neon-text tabular-nums">1,093 ENG1</span></div>
+          <div class="flex justify-between"><span class="opacity-70">VIRTUAL:</span><span id="emergents-short" class="neon-text tabular-nums">323M</span></div>
+          <div class="flex justify-between"><span class="opacity-70">POWER:</span><span class="text-[#7aff9e]">0 kT net</span></div>
+        </div>
+      </div>
+      <div class="glow-box rounded-xl p-2.5 md:p-3.5">
+        <div class="text-[9px] tracking-widest opacity-50 mb-1">> EMERGENT_COUNT</div>
+        <div id="emergents-count" class="text-[20px] md:text-[28px] leading-none neon-text tabular-nums tracking-tighter">323,538,930</div>
+        <div class="flex items-center gap-2 mt-2">
+          <span class="text-[10px] px-2 py-0.5 rounded border border-[#00ff41]/30 bg-[#00ff41]/[0.08] text-[#9effb8]">VMs ACTIVE</span>
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff41] opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-[#00ff41]" style="box-shadow:0 0 6px #00ff41"></span>
+          </span>
+        </div>
+        <div class="mt-2 h-[18px] w-full overflow-hidden rounded bg-black/60 border border-[#00ff41]/15">
+          <div class="h-full w-[73%] animate-pulse" style="background: linear-gradient(90deg, transparent, rgba(0,255,65,0.3), transparent); box-shadow: inset 0 0 10px rgba(0,255,65,0.5);"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- BOTTOM -->
+    <div class="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 w-[94%] max-w-[760px] pointer-events-auto">
+      <div class="glow-box rounded-2xl px-4 md:px-6 py-3 md:py-3.5">
+        <div class="flex flex-col md:flex-row items-center gap-3 md:gap-6">
+          <div class="text-center md:text-left shrink-0">
+            <div class="text-[9px] tracking-widest opacity-50 mb-0.5">> LIMIT_PROOF</div>
+            <div class="text-[13px] md:text-[15px] tracking-wide whitespace-nowrap">
+              lim <span class="text-[10px] align-sub opacity-70">n→∞</span> <span class="neon-text mx-1">3ⁿ / 3⁽ⁿ⁺⁰·⁰¹⁾</span> = <span class="neon-text">1</span>
+            </div>
+          </div>
+          <div class="w-full md:flex-1">
+            <div class="relative h-[30px] rounded-full overflow-hidden border border-[#00ff41]/20 bg-black/70">
+              <canvas id="chase-viz" class="absolute inset-0 w-full h-full"></canvas>
+              <div class="absolute inset-0 flex items-center justify-center text-[10px] tracking-[0.25em] opacity-70 pointer-events-none">CHASE GAP 0.01</div>
+            </div>
+            <div class="flex justify-between text-[9px] opacity-50 mt-1 px-1 font-mono">
+              <span>INNER [3ⁿ]</span>
+              <span class="text-[#ff5a7a]" style="text-shadow:0 0 6px #ff0040">Δ PHASE TRANSFER</span>
+              <span>OUTER [3ⁿ⁺⁰·⁰¹]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="md:hidden absolute bottom-[96px] left-1/2 -translate-x-1/2 text-[10px] opacity-40 tracking-widest whitespace-nowrap pointer-events-none">TAP + DRAG // INTERACT</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const bg = $('bg'), bgCtx = bg.getContext('2d');
+  const main = $('main'), ctx = main.getContext('2d');
+  const core = $('core'), coreCtx = core.getContext('2d');
+  const chase = $('chase-viz'), chaseCtx = chase.getContext('2d');
+  
+  let dpr = 1, t = 0, mx = 0, my = 0, targetMX = 0, targetMY = 0;
+  let innerRot = 0, outerRot = 0.08;
+  const flowParts = [], engDots = [], ripples = [];
+  let lastRipple = 0;
+  let emergents = 323538930;
+
+  function init() {
+    for(let i=0;i<84;i++) {
+      flowParts.push({ angle: Math.random()*Math.PI*2, prog: Math.random(), dir: i%2, speed: 0.003 + Math.random()*0.0035 });
+    }
+    for(let i=0;i<48;i++) {
+      engDots.push({ r: 12 + Math.random()*90, a: Math.random()*Math.PI*2, speed: 0.006 + Math.random()*0.024, fx: 0.7+Math.random()*1.6, fy: 0.7+Math.random()*1.6, x:0, y:0 });
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('pointermove', e => { targetMX = (e.clientX/innerWidth - 0.5)*40; targetMY = (e.clientY/innerHeight - 0.5)*30; });
+    window.addEventListener('pointerdown', burst);
+    setInterval(() => {
+      emergents += Math.floor(712 + Math.random()*2847);
+      $('emergents-count').textContent = emergents.toLocaleString('en-US');
+      $('emergents-short').textContent = Math.floor(emergents/1e6) + 'M';
+    }, 73);
+    requestAnimationFrame(animate);
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    [bg, main].forEach(c => {
+      const cctx = c.getContext('2d');
+      c.width = innerWidth * dpr;
+      c.height = innerHeight * dpr;
+      c.style.width = innerWidth + 'px';
+      c.style.height = innerHeight + 'px';
+      cctx.setTransform(dpr,0,0,dpr,0,0);
+    });
+    const cw = core.parentElement.clientWidth;
+    core.width = cw * dpr; core.height = cw * dpr;
+    core.style.width = cw + 'px'; core.style.height = cw + 'px';
+    coreCtx.setTransform(dpr,0,0,dpr,0,0);
+    const chaseW = chase.parentElement.clientWidth;
+    chase.width = chaseW * dpr; chase.height = 30 * dpr;
+    chase.style.width = chaseW + 'px'; chase.style.height = '30px';
+    chaseCtx.setTransform(dpr,0,0,dpr,0,0);
+    drawBg();
+  }
+
+  function drawBg() {
+    const w = innerWidth, h = innerHeight;
+    bgCtx.clearRect(0,0,w,h);
+    bgCtx.fillStyle = '#000';
+    bgCtx.fillRect(0,0,w,h);
+    for(let i=0;i<220;i++){
+      const x = Math.random()*w, y = Math.random()*h, s = Math.random()*1.3;
+      bgCtx.fillStyle = `rgba(0,255,65,${0.1+Math.random()*0.35})`;
+      bgCtx.shadowColor = '#00ff41'; bgCtx.shadowBlur = 5;
+      bgCtx.beginPath(); bgCtx.arc(x,y,s,0,7); bgCtx.fill();
+    }
+    bgCtx.shadowBlur = 0;
+    bgCtx.strokeStyle = 'rgba(0,255,65,0.045)';
+    bgCtx.lineWidth = 1;
+    const step = 72;
+    for(let x=0;x<w;x+=step){ bgCtx.beginPath(); bgCtx.moveTo(x,0); bgCtx.lineTo(x,h); bgCtx.stroke(); }
+    for(let y=0;y<h;y+=step){ bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(w,y); bgCtx.stroke(); }
+    const grad = bgCtx.createRadialGradient(w/2,h/2, Math.min(w,h)*0.2, w/2,h/2, Math.max(w,h)*0.65);
+    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,'rgba(0,0,0,0.9)');
+    bgCtx.fillStyle = grad; bgCtx.fillRect(0,0,w,h);
+  }
+
+  function burst() {
+    flowParts.forEach(p => p.speed = 0.018 + Math.random()*0.012);
+    setTimeout(()=> flowParts.forEach(p => p.speed = 0.003 + Math.random()*0.0035), 700);
+  }
+
+  function drawRing(radius, rot, isOuter, cx, cy) {
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+    ctx.beginPath(); ctx.arc(0,0,radius,0,Math.PI*2);
+    ctx.strokeStyle = isOuter ? 'rgba(122,255,158,0.28)' : 'rgba(0,255,65,0.45)';
+    ctx.lineWidth = isOuter ? 1.8 : 2.4;
+    ctx.shadowColor = '#00ff41'; ctx.shadowBlur = isOuter ? 16 : 22;
+    ctx.stroke(); ctx.shadowBlur = 0;
+    const segs = isOuter ? 108 : 81;
+    for(let i=0;i<segs;i++){
+      const a = i/segs * Math.PI*2;
+      const x = Math.cos(a)*radius, y = Math.sin(a)*radius;
+      const isPower = i % 9 === 0;
+      const isTriple = i % 3 === 0;
+      const pulse = Math.sin(t*1.9 + i*0.37)*0.5 + 0.5;
+      const size = isPower ? 3.4 + pulse*2.4 : isTriple ? 2.3 : 1.5;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(a + Math.PI/2);
+      ctx.globalAlpha = isPower ? 0.95 : isTriple ? 0.82 : 0.6;
+      ctx.fillStyle = isOuter ? '#b8ffd0' : '#00ff41';
+      ctx.shadowColor = '#00ff41'; ctx.shadowBlur = isPower ? 14 : 7;
+      if(isOuter && isPower){
+        ctx.beginPath(); ctx.moveTo(0,-size*1.35); ctx.lineTo(size*0.9,0); ctx.lineTo(0,size*1.35); ctx.lineTo(-size*0.9,0); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillRect(-size/2, -size/2, size, size);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawFlow(cx,cy,r1,r2){
+    flowParts.forEach(p=>{
+      p.prog += p.speed;
+      if(p.prog>1) p.prog = 0;
+      const dir = p.dir===0 ? p.prog : 1-p.prog;
+      const rad = r1 + (r2-r1)*dir;
+      const a = p.angle + t*0.18 + (p.dir===0? innerRot*0.2 : outerRot*0.2);
+      const x = cx + Math.cos(a)*rad;
+      const y = cy + Math.sin(a)*rad;
+      ctx.beginPath(); ctx.arc(x,y, p.dir===0?1.9:1.3, 0, Math.PI*2);
+      ctx.fillStyle = p.dir===0 ? 'rgba(0,255,65,0.92)' : 'rgba(150,255,190,0.78)';
+      ctx.shadowColor = '#00ff41'; ctx.shadowBlur = 11;
+      ctx.globalAlpha = 0.65 + Math.sin(t*2.5 + p.angle)*0.35;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  }
+
+  function drawCore() {
+    const w = core.width/dpr, h = core.height/dpr, cx = w/2, cy = h/2;
+    coreCtx.clearRect(0,0,w,h);
+    const glow = coreCtx.createRadialGradient(cx,cy,5,cx,cy,w*0.48);
+    glow.addColorStop(0,'rgba(0,255,65,0.16)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+    coreCtx.fillStyle = glow; coreCtx.beginPath(); coreCtx.arc(cx,cy,w*0.48,0,7); coreCtx.fill();
+    
+    ripples.forEach((rp, i) => {
+      rp.r += 0.85; rp.life += 0.009;
+      if(rp.life > 1){ ripples.splice(i,1); return; }
+      coreCtx.beginPath(); coreCtx.arc(cx,cy, 6 + rp.r, 0, Math.PI*2);
+      coreCtx.strokeStyle = `rgba(0,255,65,${0.28*(1-rp.life)})`;
+      coreCtx.lineWidth = 1; coreCtx.shadowColor='#00ff41'; coreCtx.shadowBlur=9; coreCtx.stroke();
+    });
+    coreCtx.shadowBlur = 0;
+
+    for(let i=1;i<=5;i++){
+      coreCtx.beginPath();
+      coreCtx.arc(cx,cy, 14 + i*13 + Math.sin(t*0.9+i)*1.5, 0, Math.PI*2);
+      coreCtx.strokeStyle = `rgba(0,255,65,${0.06 + i*0.018})`;
+      coreCtx.lineWidth = 1; coreCtx.stroke();
+    }
+
+    engDots.forEach(d=>{
+      d.a += d.speed;
+      const rx = Math.cos(d.a*d.fx + t*0.35) * d.r * 0.42;
+      const ry = Math.sin(d.a*d.fy + t*0.28) * d.r * 0.42;
+      d.x = cx + rx; d.y = cy + ry;
+      coreCtx.beginPath(); coreCtx.arc(d.x, d.y, 1.15, 0, 7);
+      coreCtx.fillStyle = '#00ff41'; coreCtx.shadowColor='#00ff41'; coreCtx.shadowBlur=7; coreCtx.fill();
+    });
+    coreCtx.shadowBlur = 0;
+    coreCtx.lineWidth = 0.5;
+    for(let i=0;i<engDots.length;i++){
+      for(let j=i+1;j<engDots.length;j++){
+        const a=engDots[i], b=engDots[j];
+        const dist = Math.hypot(a.x-b.x, a.y-b.y);
+        if(dist < 26){
+          coreCtx.strokeStyle = `rgba(0,255,65,${0.09*(1-dist/26)})`;
+          coreCtx.beginPath(); coreCtx.moveTo(a.x,a.y); coreCtx.lineTo(b.x,b.y); coreCtx.stroke();
+        }
+      }
+    }
+    coreCtx.font = '700 11px Share Tech Mono'; coreCtx.fillStyle='rgba(0,255,65,0.16)'; coreCtx.textAlign='center';
+    for(let i=0;i<3;i++){
+      const ang = t*0.55 + i*2.09; const rad = 24 + i*9;
+      coreCtx.save(); coreCtx.translate(cx+Math.cos(ang)*rad*0.32, cy+Math.sin(ang)*rad*0.32); coreCtx.rotate(ang*0.4);
+      coreCtx.fillText('D!',0,0); coreCtx.restore();
+    }
+  }
+
+  function drawChase() {
+    const w = chase.width/dpr, h = chase.height/dpr, y = h/2;
+    chaseCtx.clearRect(0,0,w,h);
+    chaseCtx.strokeStyle='rgba(0,255,65,0.18)'; chaseCtx.lineWidth=2; chaseCtx.lineCap='round';
+    chaseCtx.beginPath(); chaseCtx.moveTo(8,y); chaseCtx.lineTo(w-8,y); chaseCtx.stroke();
+    chaseCtx.strokeStyle='rgba(0,255,65,0.09)'; chaseCtx.lineWidth=1;
+    for(let i=0;i<13;i++){ const tx=8+(w-16)*i/12; chaseCtx.beginPath(); chaseCtx.moveTo(tx,y-4); chaseCtx.lineTo(tx,y+4); chaseCtx.stroke(); }
+    const speed = 24;
+    const ix = 8 + ((t*speed) % (w-16));
+    const gapPx = Math.max(11, (w-16)*0.012);
+    let ox = ix + gapPx; if(ox > w-8) ox -= (w-16);
+    const gx = ix + gapPx/2 > w-8 ? ix + gapPx/2 - (w-16) : ix + gapPx/2;
+    chaseCtx.beginPath(); chaseCtx.arc(gx,y,7.5,0,7); chaseCtx.fillStyle='rgba(255,0,64,0.22)'; chaseCtx.shadowColor='#ff0040'; chaseCtx.shadowBlur=14; chaseCtx.fill(); chaseCtx.shadowBlur=0;
+    chaseCtx.beginPath(); chaseCtx.arc(ix,y,3.6,0,7); chaseCtx.fillStyle='#00ff41'; chaseCtx.shadowColor='#00ff41'; chaseCtx.shadowBlur=11; chaseCtx.fill();
+    chaseCtx.beginPath(); chaseCtx.arc(ox,y,3.6,0,7); chaseCtx.fillStyle='#c8ffe0'; chaseCtx.shadowBlur=11; chaseCtx.fill(); chaseCtx.shadowBlur=0;
+  }
+
+  function animate() {
+    t += 0.016;
+    mx += (targetMX - mx)*0.06; my += (targetMY - my)*0.06;
+    const w = innerWidth, h = innerHeight;
+    const cx = w/2 + mx, cy = h/2 + my - 6;
+    ctx.clearRect(0,0,w,h);
+    innerRot -= 0.0039;
+    outerRot = innerRot + 0.083 + Math.sin(t*0.38)*0.0045;
+    let rBase = Math.min(w,h) * 0.228;
+    if(w < 768) rBase *= 0.81;
+    const r1 = rBase, r2 = rBase * 1.34;
+
+    const gapGrad = ctx.createRadialGradient(cx,cy,r1,cx,cy,r2);
+    gapGrad.addColorStop(0,'rgba(255,0,64,0)'); gapGrad.addColorStop(0.44,'rgba(255,0,64,0.15)'); gapGrad.addColorStop(0.56,'rgba(255,0,64,0.15)'); gapGrad.addColorStop(1,'rgba(255,0,64,0)');
+    ctx.fillStyle = gapGrad; ctx.beginPath(); ctx.arc(cx,cy,r2,0,Math.PI*2); ctx.arc(cx,cy,r1,0,Math.PI*2,true); ctx.fill();
+
+    ctx.save(); ctx.translate(cx,cy); ctx.strokeStyle='rgba(255,0,64,0.075)'; ctx.lineWidth=1;
+    for(let i=0;i<72;i++){ const a = i/72*Math.PI*2 + t*0.12; ctx.beginPath(); ctx.moveTo(Math.cos(a)*r1, Math.sin(a)*r1); ctx.lineTo(Math.cos(a)*r2, Math.sin(a)*r2); ctx.stroke(); }
+    ctx.restore();
+
+    drawRing(r1, innerRot, false, cx, cy);
+    drawRing(r2, outerRot, true, cx, cy);
+
+    ctx.save(); ctx.textAlign='center'; ctx.font = (w<768?'10px':'12px') + ' Share Tech Mono'; ctx.shadowColor='#00ff41'; ctx.shadowBlur=10; ctx.fillStyle='#00ff41';
+    ctx.fillText('INFINITY BOXED', cx, cy - r1 - 18); ctx.fillStyle='#aaffcc'; ctx.fillText('INFINITY BOXED +0.01', cx, cy - r2 - 18);
+    ctx.shadowColor='#ff0040'; ctx.fillStyle='rgba(255,80,110,0.95)'; ctx.font='10px Share Tech Mono'; ctx.fillText('0.01 GAP', cx + (r1+r2)*0.28, cy + 5); ctx.restore();
+
+    drawFlow(cx,cy,r1,r2);
+    drawCore();
+    drawChase();
+
+    if(performance.now() - lastRipple > 860){ ripples.push({r:0, life:0}); lastRipple = performance.now(); }
+    requestAnimationFrame(animate);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROOT0 MASTER PORTFOLIO v16 — L1.30 THE WHEEL RULE</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --green: #00ff41; --green-dim: #00a62b; }
+  html,body { background:#000; }
+  body { font-family: 'JetBrains Mono', monospace; }
+  h1,h2 { font-family: 'Orbitron', sans-serif; }
+  .bg-grid {
+    background-image: 
+      linear-gradient(rgba(0,255,65,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,65,0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .scanlines::after {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,255,65,0.04) 1px, transparent 2px, transparent 4px);
+    mix-blend-mode: screen;
+  }
+  .glow-green { color: var(--green); text-shadow: 0 0 6px #00ff41, 0 0 18px #00ff41, 0 0 32px #00a62b; }
+  .glow-box { box-shadow: 0 0 12px rgba(0,255,65,0.5), inset 0 0 12px rgba(0,255,65,0.2); }
+  .pixel-border { border-image: repeating-linear-gradient(90deg, var(--green) 0 4px, transparent 4px 8px) 1; }
+  .core-bit {
+    transition: all 0.4s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  .core-bit.expanded {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 15px rgba(0,255,65,0.8), inset 0 0 10px rgba(0,255,65,0.3);
+    transform: translateY(-4px);
+  }
+  .mini-bit {
+    width: 6px; height: 10px; background:#0a1f0f; border:1px solid #003b12;
+    animation: spawn 0.3s ease-out forwards; opacity:0;
+  }
+  @keyframes spawn { from { transform: translateY(10px) scale(0.5); opacity:0;} to { transform: translateY(0) scale(1); opacity:1; background: var(--green); box-shadow: 0 0 4px var(--green);} }
+  .wheel-teeth { transition: transform 0.7s cubic-bezier(0.68,-0.55,0.265,1.55); }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-track { background:#000; }
+  ::-webkit-scrollbar-thumb { background:#003b12; border:1px solid var(--green-dim); }
+  ::-webkit-scrollbar-thumb:hover { background: #005a1a; }
+</style>
+</head>
+<body class="bg-black text-green-100 selection:bg-[#00ff41] selection:text-black scanlines">
+<div class="bg-grid fixed inset-0 opacity-40"></div>
+<div class="relative z-10 min-h-screen flex flex-col">
+  <!-- HEADER -->
+  <header class="border-b border-green-900/50 bg-black/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-3 h-3 bg-[#00ff41] animate-pulse glow-box"></div>
+        <div>
+          <h1 class="text-lg md:text-xl font-black tracking-widest glow-green">ROOT0://MASTER_PORTFOLIO</h1>
+          <p class="text-[10px] text-green-600 tracking-[0.3em] -mt-1">v16.0 — CYBERPUNK 8-BIT ARCHIVE</p>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-3 text-[11px]">
+        <span class="px-2 py-1 border border-green-800 bg-green-950/50">CORE: 8-BIT</span>
+        <span class="px-2 py-1 border border-green-500 bg-green-500/10 text-[#00ff41] animate-pulse">L1.30 ACTIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-6 lg:py-8 grid grid-cols-12 gap-6">
+    <!-- LEFT: LAYER NAV -->
+    <aside class="col-span-12 lg:col-span-4 xl:col-span-3">
+      <div class="bg-black/70 border border-green-900/60 backdrop-blur p-4 h-full">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-[12px] tracking-widest text-green-500">LAYER STACK</h2>
+          <span class="text-[10px] text-green-800">30 ACTIVE</span>
+        </div>
+        
+        <!-- L1.30 CURRENT -->
+        <div class="mb-4 p-3 border-2 border-[#00ff41] bg-[#00ff41]/5 glow-box">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="text-[10px] text-[#00ff41]">L1.30</div>
+              <div class="font-bold text-[#00ff41] glow-green leading-tight">THE WHEEL RULE</div>
+              <div class="text-[11px] text-green-300">8-BIT EXPANSION BY 4 HOPS</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-ping"></div>
+          </div>
+        </div>
+
+        <div class="space-y-1 max-h-[55vh] overflow-y-auto pr-1" id="prev-layers">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-green-900/40 text-[10px] text-green-700 leading-relaxed">
+          ROOT0 PROTOCOL: Each layer builds tools that build tools. Core never breaks.
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: CONTENT -->
+    <section class="col-span-12 lg:col-span-8 xl:col-span-9">
+      <div class="bg-black/70 border border-green-800 backdrop-blur">
+        <!-- Terminal Header -->
+        <div class="flex items-center gap-2 px-4 py-2 border-b border-green-900/60 bg-gradient-to-r from-green-950/40 to-transparent">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#00ff41]"></span>
+          </div>
+          <span class="text-[11px] text-green-600 ml-2">/root0/layers/L1.30_wheel_rule.exe</span>
+        </div>
+
+        <div class="p-5 md:p-8">
+          <div class="flex flex-wrap items-baseline gap-3 mb-6">
+            <h2 class="text-2xl md:text-4xl font-black glow-green tracking-wider">THE WHEEL RULE</h2>
+            <span class="text-[11px] px-2 py-1 border border-[#00ff41] text-[#00ff41] bg-[#00ff41]/10">ENGINE RULE</span>
+          </div>
+
+          <p class="text-green-200/90 leading-relaxed mb-6 max-w-3xl">
+            Keep the original <span class="text-[#00ff41] font-bold">8 bits</span>. For every turn of the wheel — <span class="text-white">4 hops</span> — add 8 bits to <span class="underline decoration-[#00ff41]/50">one</span> of the original bits. <br class="hidden md:block"><span class="text-[#00ff41]">Rule:</span> you cannot expand the same bit twice.
+          </p>
+
+          <!-- WHEEL VISUALIZER -->
+          <div class="grid md:grid-cols-5 gap-6 items-start mb-8">
+            <div class="md:col-span-2">
+              <div class="border border-green-900 bg-black/60 p-4 h-full">
+                <div class="text-[11px] text-green-500 mb-3 tracking-widest">WHEEL SIMULATOR</div>
+                <div class="flex flex-col items-center">
+                  <div class="relative w-40 h-40 flex items-center justify-center">
+                    <!-- pointer -->
+                    <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-[14px] border-l-transparent border-r-transparent border-b-[#00ff41] z-20 drop-shadow-[0_0_6px_#00ff41]"></div>
+                    <svg id="wheel" viewBox="0 0 100 100" class="w-36 h-36 wheel-teeth">
+                      <circle cx="50" cy="50" r="46" fill="#020" stroke="#00ff41" stroke-width="1.5" opacity="0.8"/>
+                      <circle cx="50" cy="50" r="36" fill="none" stroke="#00ff41" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.4"/>
+                      <g id="teeth" stroke="#00ff41" stroke-width="2">
+                        <!-- 8 teeth -->
+                        <line x1="50" y1="4" x2="50" y2="16" />
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(45 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(90 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(135 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(180 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(225 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(270 50 50)"/>
+                        <line x1="50" y1="4" x2="50" y2="16" transform="rotate(315 50 50)"/>
+                      </g>
+                      <text x="50" y="28" text-anchor="middle" fill="#00ff41" font-size="7" font-family="JetBrains Mono">7</text>
+                      <text x="72" y="35" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">6</text>
+                      <text x="80" y="54" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">5</text>
+                      <text x="72" y="73" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">4</text>
+                      <text x="50" y="81" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">3</text>
+                      <text x="28" y="73" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">2</text>
+                      <text x="20" y="54" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">1</text>
+                      <text x="28" y="35" text-anchor="middle" fill="#004d1a" font-size="6" font-family="JetBrains Mono">0</text>
+                      <circle cx="50" cy="50" r="3" fill="#00ff41" class="glow-box"/>
+                    </svg>
+                  </div>
+                  <div class="flex gap-2 mt-4">
+                    <button id="turnBtn" class="px-4 py-2 bg-[#00ff41] text-black font-bold text-[12px] tracking-widest hover:bg-[#7aff9a] active:scale-95 transition border-2 border-[#00ff41] shadow-[0_0_15px_rgba(0,255,65,0.4)]">TURN 4 HOPS</button>
+                    <button id="resetBtn" class="px-3 py-2 bg-black text-[#00ff41] font-bold text-[12px] tracking-widest border border-green-800 hover:bg-green-950/50 transition">RESET</button>
+                  </div>
+                  <p id="status" class="text-[11px] text-green-400 mt-3 h-4 text-center">READY // CORE INTACT</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="md:col-span-3">
+              <div class="border border-green-900 bg-black/60 p-4 h-full">
+                <div class="text-[11px] text-green-500 mb-3 tracking-widest">EXPANSION SEQUENCE</div>
+                <div id="seq" class="flex flex-wrap gap-1.5 mb-4"></div>
+                <div class="text-[11px] leading-relaxed text-green-300/80 space-y-2 font-mono">
+                  <p><span class="text-[#00ff41]">></span> Traversal prevents double-expansion on same bit</p>
+                  <p><span class="text-[#00ff41]">></span> Forces full sweep: <span class="text-white">.99 → .98 → .97 → .95 → 00 → -00 → -01 → -02 → -03</span></p>
+                  <p><span class="text-[#00ff41]">></span> Each turn expands WIDTH, not depth. Original 8-bit core never breaks.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8-BIT CORE -->
+          <div class="border border-green-900 bg-gradient-to-b from-green-950/20 to-black/60 p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-[11px] tracking-widest text-green-500">ORIGINAL 8-BIT CORE</div>
+              <div class="text-[10px] text-green-700">IMMUTABLE // v16</div>
+            </div>
+            
+            <div id="core" class="flex justify-between gap-1 md:gap-2 max-w-3xl mx-auto">
+              <!-- core bits injected -->
+            </div>
+            <div id="expansion-grid" class="grid grid-cols-8 gap-1 md:gap-2 max-w-3xl mx-auto mt-3 h-[50px]">
+              <!-- expansions -->
+            </div>
+
+            <div class="mt-8 grid md:grid-cols-3 gap-4 text-[12px]">
+              <div class="p-3 border border-green-900/50 bg-black/40">
+                <div class="text-[#00ff41] font-bold mb-1">ENGINE RULE</div>
+                <p class="text-green-300/70 leading-snug">Tools that build tools must not corrupt their parent. Expansion attaches, core persists.</p>
+              </div>
+              <div class="p-3 border border-green-900/50 bg-black/40">
+                <div class="text-[#00ff41] font-bold mb-1">WHY 4 HOPS</div>
+                <p class="text-green-300/70 leading-snug">4 hops = 180° on 8-bit wheel. Opposite bit each turn enforces distribution, avoids clustering.</p>
+              </div>
+              <div class="p-3 border border-green-900/50 bg-black/40">
+                <div class="text-[#00ff41] font-bold mb-1">LIMIT</div>
+                <p class="text-green-300/70 leading-snug">After -03, no further right. Width maxed. Start new wheel (L1.31).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-[11px] text-green-700 border-t border-green-900/40 pt-4 flex flex-wrap gap-4">
+            <span>ROOT0.MASTER.PORTFOLIO v16</span>
+            <span class="opacity-60">preserves L1.00 → L1.29</span>
+            <span class="text-[#00ff41]">L1.30 // GREEN TERMINAL ACTIVE</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-green-900/30 py-3 px-4 text-center text-[10px] text-green-800 tracking-widest">
+    ROOT0 © 2049 — BUILD TOOLS THAT BUILD TOOLS
+  </footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const seq = ['.99','.98','.97','.95','00','-00','-01','-02','-03'];
+  const bitMap = [7,6,5,4,3,2,1,0]; // mapping for first 8 steps
+  let step = 0;
+
+  const wheel = document.getElementById('wheel');
+  const turnBtn = document.getElementById('turnBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const status = document.getElementById('status');
+  const seqEl = document.getElementById('seq');
+  const coreEl = document.getElementById('core');
+  const expGrid = document.getElementById('expansion-grid');
+
+  // Build sequence UI
+  seq.forEach((s,i)=>{
+    const span = document.createElement('span');
+    span.textContent = s;
+    span.dataset.idx = i;
+    span.className = 'px-2 py-1 border text-[11px] transition-all ' + (i===0 ? 'border-[#00ff41] bg-[#00ff41]/10 text-[#00ff41]' : 'border-green-900 text-green-700');
+    seqEl.appendChild(span);
+  });
+
+  // Build core bits
+  for(let i=7;i>=0;i--){
+    const bit = document.createElement('div');
+    bit.className = 'core-bit relative flex-1 aspect-[3/4] border-2 border-green-900 bg-[#001a08] flex flex-col items-center justify-center';
+    bit.dataset.bit = i;
+    bit.innerHTML = `
+      <div class="text-[10px] text-green-800">BIT</div>
+      <div class="text-xl md:text-2xl font-bold text-green-600">${i}</div>
+      <div class="absolute -bottom-5 text-[9px] text-green-900">8b</div>
+    `;
+    coreEl.appendChild(bit);
+    const expCol = document.createElement('div');
+    expCol.className = 'flex justify-center gap-[2px] flex-wrap items-start';
+    expCol.dataset.col = i;
+    expGrid.appendChild(expCol);
+  }
+
+  // Previous layers
+  const prev = document.getElementById('prev-layers');
+  const layerNames = {
+    0:'ROOT0 INIT', 1:'Origin Seed', 2:'Binary Primitives', 3:'Logic Gate',4:'Register',5:'Stack Frame',6:'Heap Alloc',7:'Pointer',8:'Recursion Base',9:'Loop Engine',
+    10:'8-Bit Core Lock',11:'Bitwise Ops',12:'Mask Layer',13:'Shift Register',14:'Parity',15:'Checksum',16:'Compiler v1',17:'Tool Seed',18:'Meta-Compiler',19:'Auto-Builder',
+    20:'Fractal Engine',21:'Recursion Gate',22:'Mirror Stack',23:'Echo Protocol',24:'Tool Forge',25:'Builder Pattern',26:'Self-Repair',27:'Redundancy',28:'Resilience',29:'Pre-Wheel'
+  };
+  for(let i=29;i>=0;i--){
+    const item = document.createElement('div');
+    item.className = 'group flex items-center justify-between py-1.5 px-2 border-l-2 border-green-950 hover:border-green-700 hover:bg-white/5 cursor-pointer transition';
+    const name = layerNames[i] || `Layer ${i}`;
+    item.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-green-800 group-hover:text-green-500 w-10">L1.${i.toString().padStart(2,'0')}</span>
+        <span class="text-[12px] text-green-300/70 group-hover:text-green-200 truncate">${name}</span>
+      </div>
+      <span class="text-[9px] text-green-900">✓</span>
+    `;
+    prev.appendChild(item);
+  }
+
+  function updateSeq(){
+    [...seqEl.children].forEach((el,i)=>{
+      if(i < step) {
+        el.className = 'px-2 py-1 border text-[11px] border-green-800 bg-green-950/40 text-green-600';
+      } else if(i === step) {
+        el.className = 'px-2 py-1 border text-[11px] border-[#00ff41] bg-[#00ff41]/10 text-[#00ff41] animate-pulse';
+      } else {
+        el.className = 'px-2 py-1 border text-[11px] border-green-900 text-green-800';
+      }
+    });
+  }
+
+  function turnWheel(){
+    if(step >= 8){
+      status.textContent = 'LIMIT REACHED: -03 // Cannot expand further right';
+      status.className = 'text-[11px] text-amber-400 mt-3 h-4 text-center';
+      wheel.style.transform = `rotate(${1440}deg)`;
+      return;
+    }
+    
+    const targetBit = bitMap[step];
+    const rotation = step * 180 + 45 + (step % 2 ? 22.5 : 0);
+    wheel.style.transform = `rotate(${rotation}deg)`;
+    
+    // expand bit
+    const coreBit = coreEl.querySelector(`[data-bit="${targetBit}"]`);
+    coreBit.classList.add('expanded');
+    coreBit.querySelector('div:last-child').textContent = '8b+8';
+    coreBit.querySelector('div:last-child').className = 'absolute -bottom-5 text-[9px] text-[#00ff41]';
+    
+    const col = expGrid.querySelector(`[data-col="${targetBit}"]`);
+    col.innerHTML = '';
+    for(let i=0;i<8;i++){
+      const m = document.createElement('div');
+      m.className = 'mini-bit';
+      m.style.animationDelay = `${i*40}ms`;
+      col.appendChild(m);
+    }
+
+    status.textContent = `TURN ${step+1} // Expanded BIT ${targetBit} → ${seq[step]} // CORE INTACT`;
+    status.className = 'text-[11px] text-[#00ff41] mt-3 h-4 text-center';
+    
+    step++;
+    updateSeq();
+
+    if(step === 8){
+      setTimeout(()=>{
+        status.textContent = 'ALL 8 BITS EXPANDED // Width achieved without breaking core';
+      }, 600);
+    }
+  }
+
+  function reset(){
+    step = 0;
+    wheel.style.transform = 'rotate(0deg)';
+    coreEl.querySelectorAll('.core-bit').forEach(b=>{
+      b.classList.remove('expanded');
+      b.querySelector('div:last-child').textContent = '8b';
+      b.querySelector('div:last-child').className = 'absolute -bottom-5 text-[9px] text-green-900';
+    });
+    expGrid.querySelectorAll('div').forEach(c=>c.innerHTML='');
+    status.textContent = 'READY // CORE INTACT';
+    status.className = 'text-[11px] text-green-400 mt-3 h-4 text-center';
+    updateSeq();
+  }
+
+  turnBtn.addEventListener('click', turnWheel);
+  resetBtn.addEventListener('click', reset);
+  updateSeq();
+});
+</script>
+</body>
+</html>

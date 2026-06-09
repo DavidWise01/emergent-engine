@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinity Engine — Anchor 0110 | Node 16 Read-Only</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        body {
+            background: #050507;
+            overflow-x: hidden;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes binary-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        @keyframes mesh-pulse {
+            0%, 100% { stroke-opacity: 0.3; }
+            50% { stroke-opacity: 0.9; }
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        .pulse-ring-2 {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite 0.5s;
+        }
+        .binary-text {
+            animation: binary-flicker 0.15s infinite;
+            text-shadow: 0 0 40px rgba(255, 107, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.6), 0 0 120px rgba(255, 107, 0, 0.4);
+        }
+        .mesh-line {
+            stroke: rgba(255, 215, 0, 0.15);
+            stroke-width: 1;
+            transition: all 0.3s;
+        }
+        .mesh-line-active {
+            stroke: url(#orangeGold);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 8px rgba(255, 107, 0, 0.8));
+            animation: mesh-pulse 2s ease-in-out infinite;
+        }
+        .honeycomb {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,107,0,0.15) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .scanlines::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.03) 2px, rgba(0,255,65,0.03) 4px);
+            pointer-events: none;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #ff6b00; border-radius: 2px; }
+    </style>
+</head>
+<body class="text-white antialiased selection:bg-[#ff6b00]/30 selection:text-[#ffd700]">
+    <!-- Binary Rain Background -->
+    <canvas id="binaryRain" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+    
+    <!-- Ambient Glow -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute top-[-20%] left-[10%] w-[600px] h-[600px] bg-[#ff6b00] rounded-full blur-[180px] opacity-[0.15]"></div>
+        <div class="absolute bottom-[-10%] right-[5%] w-[500px] h-[500px] bg-[#ffd700] rounded-full blur-[160px] opacity-[0.12]"></div>
+        <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[800px] h-[400px] bg-[#00ff41] rounded-full blur-[200px] opacity-[0.05]"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-30 border-b border-white/5 bg-black/70 backdrop-blur-2xl sticky top-0">
+        <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-[72px]">
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-[#ff6b00] blur-xl opacity-60"></div>
+                        <div class="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[#ff6b00] to-[#ffd700] flex items-center justify-center shadow-lg shadow-[#ff6b00]/20">
+                            <span class="text-black font-black text-xl">T</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <h1 class="text-[17px] font-bold tracking-wider leading-none">TRINITY ENGINE</h1>
+                            <span class="px-2 py-0.5 rounded-md bg-[#00ff41]/10 border border-[#00ff41]/30 text-[10px] font-semibold text-[#00ff41] mono tracking-widest">ANCHOR UPDATE</span>
+                        </div>
+                        <p class="text-[11px] text-white/40 mono mt-1 tracking-wide">0110 • NODE 16 • READ-ONLY MESH</p>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center gap-2.5">
+                    <div class="flex items-center gap-1.5 px-3 h-7 rounded-full bg-black/80 border border-[#ff6b00]/30 backdrop-blur">
+                        <div class="w-1.5 h-1.5 rounded-full bg-[#ff6b00] animate-pulse"></div>
+                        <span class="text-[11px] mono text-[#ff6b00] font-medium tracking-wide">ANCHOR = 0110</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-3 h-7 rounded-full bg-black/80 border border-[#00ff41]/30 backdrop-blur">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-[#00ff41]"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span class="text-[11px] mono text-[#00ff41] font-medium tracking-wide">NODE 16 LOCKED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-20 max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div class="grid grid-cols-12 gap-5 lg:gap-7">
+            
+            <!-- LEFT: Anchored Systems -->
+            <div class="col-span-12 lg:col-span-3 xl:col-span-2 order-2 lg:order-1">
+                <div class="lg:sticky lg:top-[100px] space-y-4">
+                    <div>
+                        <h2 class="text-[11px] uppercase tracking-[0.2em] text-white/40 mono font-semibold mb-3 flex items-center gap-2">
+                            <span class="w-4 h-px bg-gradient-to-r from-[#ff6b00] to-transparent"></span>
+                            Anchored Systems
+                        </h2>
+                        <div class="space-y-2.5">
+                            <!-- 9-Vector -->
+                            <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl hover:border-[#ff6b00]/50 transition-all duration-500">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-[#ff6b00]/10 to-transparent"></div>
+                                <div class="relative p-4">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="w-9 h-9 rounded-xl bg-[#ff6b00]/15 border border-[#ff6b00]/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                                        </div>
+                                        <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]"></div>
+                                    </div>
+                                    <h3 class="font-semibold text-[14px] leading-tight">9-Vector</h3>
+                                    <p class="text-[11px] text-white/50 mono mt-0.5">Thinking Engine</p>
+                                    <div class="mt-3 pt-3 border-t border-white/5">
+                                        <p class="text-[10px] mono text-[#00ff41] flex items-center gap-1.5">
+                                            <span class="inline-block w-3 h-3 rounded-[3px] bg-[#00ff41]/20 flex items-center justify-center">✓</span>
+                                            ANCHORED TO 0110
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- D4 Collider -->
+                            <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl hover:border-[#ffd700]/50 transition-all duration-500">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-[#ffd700]/10 to-transparent"></div>
+                                <div class="relative p-4">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="w-9 h-9 rounded-xl bg-[#ffd700]/15 border border-[#ffd700]/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+                                        </div>
+                                        <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]"></div>
+                                    </div>
+                                    <h3 class="font-semibold text-[14px] leading-tight">D4 Collider</h3>
+                                    <p class="text-[11px] text-white/50 mono mt-0.5">Quantum Core</p>
+                                    <div class="mt-3 pt-3 border-t border-white/5">
+                                        <p class="text-[10px] mono text-[#00ff41] flex items-center gap-1.5">
+                                            <span class="inline-block w-3 h-3 rounded-[3px] bg-[#00ff41]/20 flex items-center justify-center">✓</span>
+                                            ANCHORED TO 0110
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hypercube -->
+                            <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl hover:border-[#ff6b00]/50 transition-all duration-500">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-[#ff6b00]/10 to-transparent"></div>
+                                <div class="relative p-4">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="w-9 h-9 rounded-xl bg-[#ff6b00]/15 border border-[#ff6b00]/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                                        </div>
+                                        <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]"></div>
+                                    </div>
+                                    <h3 class="font-semibold text-[14px] leading-tight">Hypercube</h3>
+                                    <p class="text-[11px] text-white/50 mono mt-0.5">4D Matrix</p>
+                                    <div class="mt-3 pt-3 border-t border-white/5">
+                                        <p class="text-[10px] mono text-[#00ff41] flex items-center gap-1.5">
+                                            <span class="inline-block w-3 h-3 rounded-[3px] bg-[#00ff41]/20 flex items-center justify-center">✓</span>
+                                            ANCHORED TO 0110
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kandi Creator -->
+                            <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl hover:border-[#ffd700]/50 transition-all duration-500">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-[#ffd700]/10 to-transparent"></div>
+                                <div class="relative p-4">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="w-9 h-9 rounded-xl bg-[#ffd700]/15 border border-[#ffd700]/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        </div>
+                                        <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]"></div>
+                                    </div>
+                                    <h3 class="font-semibold text-[14px] leading-tight">Kandi Creator</h3>
+                                    <p class="text-[11px] text-white/50 mono mt-0.5">Pattern Synthesizer</p>
+                                    <div class="mt-3 pt-3 border-t border-white/5">
+                                        <p class="text-[10px] mono text-[#00ff41] flex items-center gap-1.5">
+                                            <span class="inline-block w-3 h-3 rounded-[3px] bg-[#00ff41]/20 flex items-center justify-center">✓</span>
+                                            ANCHORED TO 0110
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER: Core Anchor -->
+            <div class="col-span-12 lg:col-span-6 xl:col-span-7 order-1 lg:order-2">
+                <div class="relative">
+                    <!-- Core Display -->
+                    <div class="relative overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 backdrop-blur-2xl honeycomb scanlines">
+                        <div class="absolute inset-0 bg-gradient-to-b from-[#ff6b00]/[0.07] via-transparent to-[#ffd700]/[0.05]"></div>
+                        
+                        <div class="relative px-6 sm:px-10 lg:px-16 py-12 sm:py-16 lg:py-20">
+                            <!-- Binary 0110 -->
+                            <div class="flex flex-col items-center">
+                                <div class="relative">
+                                    <div class="absolute -inset-20 bg-[#ff6b00] blur-[120px] opacity-20 animate-pulse"></div>
+                                    <div class="absolute -inset-10 bg-[#ffd700] blur-[80px] opacity-15 animate-pulse" style="animation-delay: 0.5s"></div>
+                                    
+                                    <h1 class="relative mono font-black tracking-[0.15em] leading-none binary-text select-none
+                                               text-[5rem] xs:text-[6rem] sm:text-[8rem] md:text-[9rem] lg:text-[11rem] xl:text-[12rem]
+                                               bg-gradient-to-b from-white via-[#fff4d6] via-40% to-[#ff6b00] bg-clip-text text-transparent">
+                                        0110
+                                    </h1>
+                                    
+                                    <!-- Binary particles -->
+                                    <div class="absolute inset-0 pointer-events-none">
+                                        <span class="absolute top-[15%] left-[5%] mono text-[#00ff41]/60 text-sm animate-pulse" style="animation-delay: 0s">0</span>
+                                        <span class="absolute top-[70%] left-[8%] mono text-[#00ff41]/40 text-xs animate-pulse" style="animation-delay: 0.3s">1</span>
+                                        <span class="absolute top-[20%] right-[6%] mono text-[#00ff41]/50 text-sm animate-pulse" style="animation-delay: 0.7s">1</span>
+                                        <span class="absolute bottom-[25%] right-[10%] mono text-[#00ff41]/60 text-xs animate-pulse" style="animation-delay: 1.1s">0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Read Only Node 16 -->
+                                <div class="relative -mt-2 sm:-mt-4 flex flex-col items-center gap-4">
+                                    <div class="flex items-center gap-3 px-5 py-2.5 rounded-full bg-black/80 border border-[#ffd700]/30 backdrop-blur-xl shadow-[0_0_30px_rgba(255,215,0,0.15)]">
+                                        <div class="relative">
+                                            <div class="absolute inset-0 bg-[#ffd700] blur-md opacity-60"></div>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="relative text-[#ffd700]"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        </div>
+                                        <span class="mono text-[15px] sm:text-[17px] tracking-[0.25em] font-semibold text-[#ffd700]">READ ONLY NODE 16</span>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="h-px w-12 bg-gradient-to-r from-transparent to-[#ff6b00]/50"></div>
+                                        <div class="px-4 py-1.5 rounded-lg bg-[#ff6b00]/10 border border-[#ff6b00]/20 backdrop-blur">
+                                            <span class="mono text-[12px] tracking-widest text-[#ff6b00] font-medium">ANCHOR = 0110</span>
+                                        </div>
+                                        <div class="h-px w-12 bg-gradient-to-l from-transparent to-[#ff6b00]/50"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mesh Visualization -->
+                            <div class="mt-14 sm:mt-20 relative">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-[340px] h-[340px] sm:w-[420px] sm:h-[420px] rounded-full border border-[#ffd700]/10"></div>
+                                    <div class="absolute w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] rounded-full border border-[#ff6b00]/10"></div>
+                                </div>
+                                
+                                <div class="relative w-full max-w-[480px] mx-auto aspect-square">
+                                    <svg id="meshSvg" class="w-full h-full overflow-visible" viewBox="0 0 400 400">
+                                        <defs>
+                                            <linearGradient id="orangeGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#ff6b00" stop-opacity="0.9"/>
+                                                <stop offset="100%" stop-color="#ffd700" stop-opacity="0.9"/>
+                                            </linearGradient>
+                                            <filter id="glow">
+                                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                                <feMerge>
+                                                    <feMergeNode in="coloredBlur"/>
+                                                    <feMergeNode in="SourceGraphic"/>
+                                                </feMerge>
+                                            </filter>
+                                        </defs>
+                                    </svg>
+                                    
+                                    <!-- Central Node 16 -->
+                                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                                        <div class="relative">
+                                            <!-- Pulse rings -->
+                                            <div class="absolute inset-0 -m-8">
+                                                <div class="absolute inset-0 rounded-full border-2 border-[#ff6b00]/60 pulse-ring"></div>
+                                                <div class="absolute inset-0 rounded-full border-2 border-[#ffd700]/40 pulse-ring-2"></div>
+                                            </div>
+                                            <div class="absolute -inset-10 rounded-full bg-[#ff6b00] blur-[40px] opacity-40 animate-pulse"></div>
+                                            
+                                            <!-- Node core -->
+                                            <div class="relative w-[84px] h-[84px] sm:w-[96px] sm:h-[96px] rounded-full bg-gradient-to-br from-[#ff6b00] to-[#ffd700] shadow-[0_0_60px_rgba(255,107,0,0.7),inset_0_2px_10px_rgba(255,255,255,0.3)] border-[3px] border-white/20 flex flex-col items-center justify-center group cursor-pointer hover:scale-105 transition-transform duration-300">
+                                                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent to-white/20"></div>
+                                                <span class="relative mono font-black text-[28px] sm:text-[32px] leading-none text-black tracking-tighter">16</span>
+                                                <span class="relative mono text-[11px] leading-none text-black/70 font-bold tracking-widest -mt-0.5">0110</span>
+                                                
+                                                <!-- Lock badge -->
+                                                <div class="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-black border-2 border-[#ffd700] shadow-lg shadow-black/50 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="3" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Node label -->
+                                        <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                            <div class="px-3 py-1 rounded-md bg-black/90 border border-[#ff6b00]/40 backdrop-blur-md">
+                                                <p class="mono text-[10px] text-[#ff6b00] tracking-widest font-medium">READ-ONLY • CENTRAL ANCHOR</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-16 text-center">
+                                    <p class="mono text-[11px] text-white/40 tracking-wide">Node 16 connected to all mesh systems • Immutable reference point</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Mesh Integration -->
+            <div class="col-span-12 lg:col-span-3 xl:col-span-3 order-3">
+                <div class="lg:sticky lg:top-[100px] space-y-4">
+                    <!-- Integration Status -->
+                    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-b from-[#00ff41]/[0.12] to-black/60 border border-[#00ff41]/30 backdrop-blur-xl">
+                        <div class="absolute inset-0">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(0,255,65,0.15),transparent_60%)]"></div>
+                        </div>
+                        <div class="relative p-6 sm:p-7">
+                            <div class="flex items-center justify-between mb-5">
+                                <h2 class="text-[11px] uppercase tracking-[0.2em] text-[#00ff41]/80 mono font-semibold">Mesh Integration</h2>
+                                <div class="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse shadow-[0_0_10px_#00ff41]"></div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[#00ff41]/10 border border-[#00ff41]/30 mb-4 relative">
+                                    <div class="absolute inset-0 rounded-2xl bg-[#00ff41] blur-xl opacity-20 animate-pulse"></div>
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00ff41" stroke-width="2.5" class="relative"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                </div>
+                                <div class="mono font-black text-[56px] leading-none tracking-tighter text-[#00ff41] mb-1" style="text-shadow: 0 0 30px rgba(0,255,65,0.5)">YES</div>
+                                <p class="text-[12px] text-white/60">Integration confirmed and active</p>
+                            </div>
+
+                            <div class="mt-6 pt-6 border-t border-[#00ff41]/15">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="group relative overflow-hidden rounded-xl bg-black/60 border border-white/10 p-3.5 hover:border-[#00ff41]/50 transition-all duration-300">
+                                        <div class="absolute inset-0 bg-gradient-to-b from-[#00ff41]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div class="relative text-center">
+                                            <div class="mono text-[26px] font-bold leading-none text-white mb-1">=0=</div>
+                                            <div class="text-[10px] uppercase tracking-wider text-white/40 mono">Binary Zero</div>
+                                            <div class="mt-2 w-full h-1 rounded-full bg-white/10 overflow-hidden">
+                                                <div class="h-full w-full bg-[#00ff41] rounded-full shadow-[0_0_10px_#00ff41]"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="group relative overflow-hidden rounded-xl bg-black/60 border border-white/10 p-3.5 hover:border-[#00ff41]/50 transition-all duration-300">
+                                        <div class="absolute inset-0 bg-gradient-to-b from-[#00ff41]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div class="relative text-center">
+                                            <div class="mono text-[26px] font-bold leading-none text-white mb-1">=1=</div>
+                                            <div class="text-[10px] uppercase tracking-wider text-white/40 mono">Binary One</div>
+                                            <div class="mt-2 w-full h-1 rounded-full bg-white/10 overflow-hidden">
+                                                <div class="h-full w-full bg-[#00ff41] rounded-full shadow-[0_0_10px_#00ff41]"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <div class="mt-3 text-center">
+                                    <p class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#00ff41]/10 border border-[#00ff41]/20">
+                                        <span class="w-1 h-1 rounded-full bg-[#00ff41] animate-pulse"></span>
+                                        <span class="text-[10px] mono text-[#00ff41] tracking-wide font-medium">CONFIRMATION SEQUENCE VALIDATED</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mesh Stats -->
+                    <div class="rounded-2xl bg-black/40 border border-white/10 backdrop-blur-xl p-5">
+                        <h3 class="text-[11px] uppercase tracking-[0.2em] text-white/40 mono font-semibold mb-4">Mesh Topology</h3>
+                        <div class="space-y-3.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[13px] text-white/70">Total Nodes</span>
+                                <span class="mono text-[15px] font-semibold text-white">16 <span class="text-white/40">/ 16</span></span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[13px] text-white/70">Read-Only</span>
+                                <span class="mono text-[15px] font-semibold text-[#ffd700] flex items-center gap-1.5">
+                                    1
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[13px] text-white/70">Connections</span>
+                                <span class="mono text-[15px] font-semibold text-[#00ff41]">47</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[13px] text-white/70">Anchor Hash</span>
+                                <span class="mono text-[13px] font-bold text-[#ff6b00] px-2 py-0.5 rounded bg-[#ff6b00]/10 border border-[#ff6b00]/20">0110</span>
+                            </div>
+                            <div class="pt-3.5 mt-3.5 border-t border-white/5">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[12px] text-white/50">Integrity</span>
+                                    <span class="text-[12px] mono text-[#00ff41] font-medium">100%</span>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                    <div class="h-full w-full bg-gradient-to-r from-[#00ff41] to-[#ffd700] rounded-full shadow-[0_0_10px_rgba(0,255,65,0.5)]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Log -->
+        <div class="mt-8 sm:mt-10">
+            <div class="relative overflow-hidden rounded-2xl bg-black/70 border border-white/10 backdrop-blur-2xl">
+                <div class="absolute inset-0 honeycomb opacity-[0.03]"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between px-4 sm:px-5 h-11 border-b border-white/5 bg-white/[0.02]">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <span class="text-[11px] uppercase tracking-widest text-white/50 mono font-medium">System Log • trinity://anchor/0110</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="hidden sm:inline text-[10px] mono text-white/30">NODE 16 • READ ONLY</span>
+                            <div class="flex items-center gap-1 px-2 py-0.5 rounded bg-[#00ff41]/10 border border-[#00ff41]/20">
+                                <div class="w-1 h-1 rounded-full bg-[#00ff41] animate-pulse"></div>
+                                <span class="text-[10px] mono text-[#00ff41] font-medium">LIVE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="syslog" class="h-[160px] overflow-y-auto px-4 sm:px-5 py-3 space-y-1.5 font-mono text-[12px] leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Binary Rain
+        const canvas = document.getElementById('binaryRain');
+        const ctx = canvas.getContext('2d');
+        let width, height, columns, drops;
+        
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            const fontSize = 14;
+            columns = Math.floor(width / fontSize);
+            drops = Array(columns).fill(0).map(() => Math.random() * -100);
+        }
+        
+        function drawRain() {
+            ctx.fillStyle = 'rgba(5, 5, 7, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.font = '14px JetBrains Mono';
+            for (let i = 0; i < drops.length; i++) {
+                const char = Math.random() > 0.5 ? '0' : '1';
+                const x = i * 14;
+                const y = drops[i] * 14;
+                
+                // Honeybadger gradient for rain
+                const alpha = Math.random() * 0.5 + 0.3;
+                if (Math.random() > 0.7) {
+                    ctx.fillStyle = `rgba(255, 107, 0, ${alpha})`;
+                } else if (Math.random() > 0.5) {
+                    ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                } else {
+                    ctx.fillStyle = `rgba(0, 255, 65, ${alpha * 0.7})`;
+                }
+                
+                ctx.fillText(char, x, y);
+                
+                if (y > height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        resize();
+        window.addEventListener('resize', resize);
+        setInterval(drawRain, 45);
+
+        // Mesh Visualization
+        const svg = document.getElementById('meshSvg');
+        const cx = 200, cy = 200, radius = 145;
+        const nodes = [];
+        
+        // Create 15 peripheral nodes
+        for (let i = 0; i < 15; i++) {
+            const angle = (i / 15) * Math.PI * 2 - Math.PI / 2;
+            nodes.push({
+                id: i + 1,
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius
+            });
+        }
+        
+        // Draw connections from center to all nodes
+        nodes.forEach(node => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', cx);
+            line.setAttribute('y1', cy);
+            line.setAttribute('x2', node.x);
+            line.setAttribute('y2', node.y);
+            line.setAttribute('class', 'mesh-line-active');
+            line.setAttribute('opacity', '0.7');
+            svg.insertBefore(line, svg.firstChild);
+        });
+        
+        // Draw mesh between peripheral nodes
+        for (let i = 0; i < nodes.length; i++) {
+            const next1 = nodes[(i + 1) % nodes.length];
+            const next2 = nodes[(i + 3) % nodes.length];
+            const next3 = nodes[(i + 5) % nodes.length];
+            
+            [next1, next2, next3].forEach(target => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', nodes[i].x);
+                line.setAttribute('y1', nodes[i].y);
+                line.setAttribute('x2', target.x);
+                line.setAttribute('y2', target.y);
+                line.setAttribute('class', 'mesh-line');
+                svg.insertBefore(line, svg.firstChild);
+            });
+        }
+        
+        // Draw peripheral nodes
+        nodes.forEach((node, idx) => {
+            const isSystemNode = [1, 4, 8, 12].includes(idx);
+            const color = isSystemNode ? '#ff6b00' : '#ffd700';
+            
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', isSystemNode ? '5' : '3.5');
+            circle.setAttribute('fill', '#050507');
+            circle.setAttribute('stroke', color);
+            circle.setAttribute('stroke-width', isSystemNode ? '2' : '1.5');
+            circle.setAttribute('opacity', isSystemNode ? '0.9' : '0.6');
+            circle.style.filter = `drop-shadow(0 0 ${isSystemNode ? 6 : 3}px ${color})`;
+            svg.appendChild(circle);
+            
+            if (isSystemNode) {
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', node.x);
+                label.setAttribute('y', node.y - 12);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', color);
+                label.setAttribute('font-size', '8');
+                label.setAttribute('font-family', 'JetBrains Mono');
+                label.setAttribute('opacity', '0.8');
+                const labels = ['9V', 'D4', 'HC', 'KC'];
+                label.textContent = labels[[1,4,8,12].indexOf(idx)];
+                svg.appendChild(label);
+            }
+        });
+
+        // System Log
+        const syslog = document.getElementById('syslog');
+        function addLog(message, color = '#00ff41', icon = '•') {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const entry = document.createElement('div');
+            entry.className = 'flex items-start gap-3 group hover:bg-white/[0.02] -mx-2 px-2 py-0.5 rounded transition-colors';
+            entry.innerHTML = `
+                <span class="text-white/25 mt-0.5">${icon}</span>
+                <span class="text-white/40 shrink-0">[${time}]</span>
+                <span style="color: ${color}" class="flex-1">${message}</span>
+            `;
+            syslog.insertBefore(entry, syslog.firstChild);
+            while (syslog.children.length > 50) syslog.removeChild(syslog.lastChild);
+        }
+        
+        // Initial logs per command
+        setTimeout(() => addLog('ENGINE RE-ANCHORED TO 0110 PER COMMAND', '#ffd700', '◆'), 100);
+        setTimeout(() => addLog('NODE 16 SET READ-ONLY IN MESH', '#ff6b00', '⬢'), 400);
+        setTimeout(() => addLog('MESH INTEGRATION: YES =0=1=', '#00ff41', '✓'), 700);
+        setTimeout(() => addLog('All systems synchronized to anchor point 0110 (binary for 6)', '#00ff41', '→'), 1000);
+        setTimeout(() => addLog('9-Vector, D4, Hypercube, Kandi Creator → ANCHORED', '#ffffff', '↳'), 1300);
+        
+        // Live updates
+        const liveMessages = [
+            ['Node 16 heartbeat stable • read-only integrity 100%', '#00ff41'],
+            ['Mesh traffic: 47 active connections', '#ffd700'],
+            ['Binary anchor 0110 verified across all vectors', '#ff6b00'],
+            ['Quantum coherence maintained at anchor', '#00ff41'],
+            ['=0=1= confirmation pulse transmitted', '#ffffff']
+        ];
+        let msgIndex = 0;
+        setInterval(() => {
+            const [msg, color] = liveMessages[msgIndex % liveMessages.length];
+            addLog(msg, color, '·');
+            msgIndex++;
+        }, 3800);
+    </script>
+</body>
+</html>

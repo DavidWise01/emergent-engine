@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KNIFE-6 Witness Renderer v2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #050507; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+  input[type="range"] { accent-color: #8b5cf6; }
+  .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+  .btn-active { background: #7c3aed !important; color: white !important; border-color: #8b5cf6 !important; }
+</style>
+</head>
+<body class="min-h-screen text-zinc-200 antialiased selection:bg-violet-500/30 selection:text-violet-100">
+  <div class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.15),transparent_60%),radial-gradient(ellipse_at_bottom,_rgba(14,165,233,0.12),transparent_60%)]"></div>
+    <div class="absolute inset-0" style="background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 32px 32px;"></div>
+  </div>
+
+  <header class="sticky top-0 z-40 border-b border-zinc-800/80 bg-black/70 glass">
+    <div class="mx-auto max-w-[1800px] px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-8 w-8 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M12 3v18" stroke="#a78bfa" stroke-width="1.5"/></svg>
+        </div>
+        <div>
+          <div class="text-[11px] uppercase tracking-[0.18em] text-zinc-400">KNIFE SYSTEMS</div>
+          <div class="text-lg font-semibold leading-5 -mt-0.5">Witness Renderer <span class="text-violet-400">v2</span></div>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-2 text-[11px]">
+        <span class="px-2 py-1 rounded bg-zinc-900 border-zinc-800 text-zinc-400">DETERMINISTIC</span>
+        <span class="px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">CHRONOS CORE</span>
+        <span class="px-2 py-1 rounded bg-emerald-900/40 border border-emerald-800 text-emerald-300" id="status">READY</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-[1800px] p-3 md:p-4 xl:p-6 grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)_340px] gap-4 xl:gap-6">
+    <!-- LEFT -->
+    <aside class="xl:sticky xl:top-[76px] self-start">
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-950/70 glass shadow-2xl shadow-black/40">
+        <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <h2 class="text-sm font-semibold tracking-wide text-zinc-300">INPUT CONTEXT</h2>
+          <span class="text-[10px] uppercase tracking-widest text-zinc-500">left panel</span>
+        </div>
+        <div class="p-4 space-y-4">
+          <div>
+            <label class="text-xs text-zinc-400 mb-1.5 block">Render Prompt</label>
+            <textarea id="prompt" rows="4" class="w-full resize-none rounded-xl bg-black/60 border border-zinc-800 focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 outline-none p-3 text-[14px] leading-5 placeholder-zinc-600" placeholder="type anything... e.g., abstract beauty, arc reactor, purple void">abstract beauty</textarea>
+            <div class="mt-1.5 flex justify-between text-[11px] text-zinc-500">
+              <span>hashes to seed on RENDER</span>
+              <span class="mono" id="promptHash">—</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-zinc-400 mb-1.5 block">Seed</label>
+              <input id="seedInput" type="number" class="w-full rounded-xl bg-black/60 border border-zinc-800 focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 outline-none px-3 py-2.5 text-[14px] mono">
+            </div>
+            <div>
+              <label class="text-xs text-zinc-400 mb-1.5 block">FPS</label>
+              <select id="fps" class="w-full rounded-xl bg-black/60 border border-zinc-800 focus:border-violet-500/50 outline-none px-3 py-2.5 text-[14px]">
+                <option>60</option>
+                <option>100</option>
+                <option selected>120</option>
+                <option>180</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <div>
+              <div class="flex justify-between">
+                <label class="text-xs text-zinc-400">Flatness</label>
+                <span class="text-[11px] mono text-zinc-400" id="flatnessVal">0.986</span>
+              </div>
+              <input id="flatness" type="range" min="0.96" max="1.00" step="0.001" value="0.986" class="w-full">
+              <div class="flex justify-between text-[10px] text-zinc-600"><span>0.96</span><span>1.00</span></div>
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <label class="text-xs text-zinc-400">Pit</label>
+                <span class="text-[11px] mono text-zinc-400" id="pitVal">0.500</span>
+              </div>
+              <input id="pit" type="range" min="0.48" max="0.52" step="0.001" value="0.500" class="w-full">
+              <div class="flex justify-between text-[10px] text-zinc-600"><span>0.48</span><span>0.52</span></div>
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <label class="text-xs text-zinc-400">Inner Time</label>
+                <span class="text-[11px] mono text-zinc-400" id="innerTimeVal">0.50</span>
+              </div>
+              <input id="innerTime" type="range" min="0.1" max="1.0" step="0.01" value="0.50" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <label class="text-xs text-zinc-400">Outer Time</label>
+                <span class="text-[11px] mono text-zinc-400" id="outerTimeVal">2.20</span>
+              </div>
+              <input id="outerTime" type="range" min="1" max="4" step="0.1" value="2.2" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between">
+                <label class="text-xs text-zinc-400">Purple Shades</label>
+                <span class="text-[11px] mono text-zinc-400" id="purpleCountVal">11</span>
+              </div>
+              <input id="purpleCount" type="range" min="5" max="15" step="1" value="11" class="w-full">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-zinc-400 mb-1.5 block">Mode</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button data-mode="abstract" id="modeAbstract" class="btn-active px-3 py-2 rounded-xl border border-zinc-800 bg-zinc-900 text-sm">Abstract</button>
+              <button data-mode="cold" id="modeCold" class="px-3 py-2 rounded-xl border border-zinc-800 bg-zinc-900 text-sm hover:bg-zinc-800">Cold</button>
+            </div>
+          </div>
+
+          <button id="renderBtn" class="group relative w-full mt-2 overflow-hidden rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold py-3.5 shadow-lg shadow-emerald-900/30 transition">
+            <span class="relative z-10 flex items-center justify-center gap-2 tracking-wide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="transition group-active:scale-95"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              RENDER
+            </span>
+            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r from-emerald-400 to-green-300"></div>
+          </button>
+          <p class="text-[11px] text-zinc-500 text-center -mt-1">Engine reads text, hashes seed, restarts chronos</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER -->
+    <section class="min-w-0">
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-950/50 glass shadow-2xl shadow-black/40 overflow-hidden">
+        <div class="px-4 py-2.5 border-b border-zinc-800 flex items-center justify-between bg-black/40">
+          <div class="flex items-center gap-2">
+            <div class="h-2 w-2 rounded-full bg-violet-500 animate-pulse"></div>
+            <span class="text-xs uppercase tracking-widest text-zinc-400">Canvas • 960×540</span>
+          </div>
+          <div class="text-[11px] mono text-zinc-500">VOID BLACK • PURPLE RINGS • WHITE KNIFE</div>
+        </div>
+        <div class="relative bg-black">
+          <div class="aspect-video w-full">
+            <canvas id="witness" width="960" height="540" class="w-full h-full block"></canvas>
+          </div>
+          <div class="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5"></div>
+        </div>
+        <div class="px-4 py-2.5 border-t border-zinc-800 bg-black/60 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-zinc-500">
+          <span>Chronos: inner pauses 2.0s / 0.5s, outer × multiplier</span>
+          <span class="hidden md:inline">•</span>
+          <span>Contains 'beauty' → softer / 'cold' 'reactor' → sharper</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="xl:sticky xl:top-[76px] self-start">
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-950/70 glass shadow-2xl shadow-black/40">
+        <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <h2 class="text-sm font-semibold tracking-wide text-zinc-300">MIDDLE END OUTPUT</h2>
+          <span class="text-[10px] uppercase tracking-widest text-zinc-500">right panel</span>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl bg-black/60 border border-zinc-800 p-3">
+              <div class="text-[10px] uppercase tracking-widest text-zinc-500">Current Seed</div>
+              <div class="mono text-lg text-violet-300 mt-1" id="rSeed">0</div>
+            </div>
+            <div class="rounded-xl bg-black/60 border border-zinc-800 p-3">
+              <div class="text-[10px] uppercase tracking-widest text-zinc-500">Step (18-seq)</div>
+              <div class="mono text-lg text-zinc-200 mt-1" id="rStep">0 / 18</div>
+            </div>
+            <div class="rounded-xl bg-black/60 border border-zinc-800 p-3">
+              <div class="text-[10px] uppercase tracking-widest text-zinc-500">Flatness Live</div>
+              <div class="mono text-lg text-zinc-200 mt-1" id="rFlatness">0.986</div>
+            </div>
+            <div class="rounded-xl bg-black/60 border border-zinc-800 p-3">
+              <div class="text-[10px] uppercase tracking-widest text-zinc-500">Merkle Blip</div>
+              <div class="mono text-[13px] text-emerald-300 mt-1 truncate" id="rMerkle">00000000</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs text-zinc-400">Deterministic Replay</label>
+              <button id="copyReplay" class="text-[11px] px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-800">Copy</button>
+            </div>
+            <pre class="scroll-thin max-h-[180px] overflow-auto rounded-xl bg-black/70 border border-zinc-800 p-3 text-[11px] leading-4 mono text-zinc-300" id="replayCode">KNIFE6.replay({})</pre>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <button id="exportPng" class="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs">Export PNG</button>
+            <button id="exportJson" class="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs">Export Params</button>
+            <button id="resetBtn" class="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs">Reset</button>
+          </div>
+
+          <div class="rounded-xl border border-violet-900/40 bg-violet-950/20 p-3">
+            <div class="text-[11px] uppercase tracking-widest text-violet-300 mb-1">Witness Notes</div>
+            <ul class="text-[12px] text-zinc-400 space-y-1 list-disc list-inside">
+              <li>Seed = sum of prompt char codes (editable)</li>
+              <li>Ring offset = sin(seed + time), knife = cos(seed*0.1 + time)</li>
+              <li>+211 / -211 sparks ride knife ends</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+<script>
+(() => {
+  // Elements
+  const promptEl = document.getElementById('prompt');
+  const seedEl = document.getElementById('seedInput');
+  const flatnessEl = document.getElementById('flatness');
+  const pitEl = document.getElementById('pit');
+  const innerTimeEl = document.getElementById('innerTime');
+  const outerTimeEl = document.getElementById('outerTime');
+  const purpleCountEl = document.getElementById('purpleCount');
+  const flatnessVal = document.getElementById('flatnessVal');
+  const pitVal = document.getElementById('pitVal');
+  const innerTimeVal = document.getElementById('innerTimeVal');
+  const outerTimeVal = document.getElementById('outerTimeVal');
+  const purpleCountVal = document.getElementById('purpleCountVal');
+  const modeAbstract = document.getElementById('modeAbstract');
+  const modeCold = document.getElementById('modeCold');
+  const fpsEl = document.getElementById('fps');
+  const renderBtn = document.getElementById('renderBtn');
+  const statusEl = document.getElementById('status');
+  const promptHashEl = document.getElementById('promptHash');
+
+  const canvas = document.getElementById('witness');
+  const ctx = canvas.getContext('2d');
+
+  const rSeed = document.getElementById('rSeed');
+  const rMerkle = document.getElementById('rMerkle');
+  const rFlatness = document.getElementById('rFlatness');
+  const rStep = document.getElementById('rStep');
+  const replayCode = document.getElementById('replayCode');
+  const copyReplay = document.getElementById('copyReplay');
+  const exportPng = document.getElementById('exportPng');
+  const exportJson = document.getElementById('exportJson');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // State
+  const S = {
+    prompt: 'abstract beauty',
+    seed: 1,
+    flatness: 0.986,
+    pit: 0.5,
+    innerTime: 0.5,
+    outerTime: 2.2,
+    purpleCount: 11,
+    mode: 'abstract',
+    fps: 120,
+    frame: 0,
+    time: 0,
+    innerAccum: 0,
+    step: 0,
+    running: false,
+    lastRender: 0,
+    prevNow: 0,
+    startTime: 0,
+    innerPaused: false
+  };
+
+  function hashPrompt(t){
+    let s = 0;
+    for (let i=0;i<t.length;i++) s += t.charCodeAt(i);
+    return s >>> 0;
+  }
+  function fnv1a(str){
+    let h = 2166136261 >>> 0;
+    for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return ('00000000' + (h>>>0).toString(16)).slice(-8);
+  }
+
+  function updateSliderLabels(){
+    flatnessVal.textContent = (+flatnessEl.value).toFixed(3);
+    pitVal.textContent = (+pitEl.value).toFixed(3);
+    innerTimeVal.textContent = (+innerTimeEl.value).toFixed(2);
+    outerTimeVal.textContent = (+outerTimeEl.value).toFixed(1);
+    purpleCountVal.textContent = purpleCountEl.value;
+  }
+
+  function setMode(m){
+    S.mode = m;
+    modeAbstract.classList.toggle('btn-active', m==='abstract');
+    modeCold.classList.toggle('btn-active', m==='cold');
+  }
+
+  function syncInputsToState(fromPrompt=true){
+    if(fromPrompt){
+      const h = hashPrompt(promptEl.value);
+      seedEl.value = h;
+      promptHashEl.textContent = 'seed:' + h;
+    }
+    S.flatness = parseFloat(flatnessEl.value);
+    S.pit = parseFloat(pitEl.value);
+    S.innerTime = parseFloat(innerTimeEl.value);
+    S.outerTime = parseFloat(outerTimeEl.value);
+    S.purpleCount = parseInt(purpleCountEl.value,10);
+    S.fps = parseInt(fpsEl.value,10);
+  }
+
+  function startRender(){
+    syncInputsToState(false);
+    S.prompt = promptEl.value.trim() || 'void';
+    S.seed = parseInt(seedEl.value,10) || hashPrompt(S.prompt) || 1;
+    S.frame = 0;
+    S.time = 0;
+    S.innerAccum = 0;
+    S.step = 0;
+    S.startTime = performance.now();
+    S.prevNow = S.startTime;
+    S.lastRender = 0;
+    S.running = true;
+    statusEl.textContent = 'RENDERING';
+    statusEl.className = 'px-2 py-1 rounded bg-violet-900/40 border border-violet-800 text-violet-200';
+    updateRightStatic();
+  }
+
+  function updateRightStatic(){
+    rSeed.textContent = S.seed;
+    rFlatness.textContent = S.flatness.toFixed(3);
+    rStep.textContent = `${S.step} / 18`;
+    replayCode.textContent = `KNIFE6.replay({\n  prompt: "${S.prompt.replace(/"/g,'\\"')}",\n  seed: ${S.seed},\n  flatness: ${S.flatness},\n  pit: ${S.pit},\n  innerTime: ${S.innerTime},\n  outerTime: ${S.outerTime},\n  purpleCount: ${S.purpleCount},\n  mode: "${S.mode}",\n  fps: ${S.fps}\n})`;
+  }
+
+  function updateLive(){
+    rMerkle.textContent = fnv1a(`${S.seed}:${S.frame}:${S.time.toFixed(3)}`);
+    rStep.textContent = `${S.step} / 18`;
+    rFlatness.textContent = S.flatness.toFixed(3);
+  }
+
+  function renderFrame(){
+    const W=960, H=540, cx=W/2, cy=H/2;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0,0,W,H);
+
+    const isBeauty = /beauty/i.test(S.prompt);
+    const isReactor = /reactor/i.test(S.prompt);
+    const isColdPrompt = /cold/i.test(S.prompt);
+    const cold = S.mode==='cold' || isColdPrompt || isReactor;
+    const soft = isBeauty || S.mode==='abstract';
+
+    // Outer purple rings
+    ctx.globalCompositeOperation = 'screen';
+    for(let i=0;i<S.purpleCount;i++){
+      const t = S.time + i*0.17;
+      // expanding at outer_time
+      const cycle = ((t * 40 * (0.5 + S.outerTime*0.25) + i*70) % 560);
+      const baseRadius = 30 + cycle;
+      // seed offset
+      const seedOffset = Math.sin(S.seed*0.001 + t*0.6 + i*0.9) * 18;
+      const ringOffset = seedOffset;
+      const pitMod = (S.pit - 0.5) * 120; // -6 to +6 roughly
+      const radius = Math.max(5, baseRadius + ringOffset + pitMod);
+
+      const wobbleX = Math.cos(S.seed*0.013 + i*1.1 + t*0.4) * 22 * S.pit;
+      const wobbleY = Math.sin(S.seed*0.017 + i*0.9 + t*0.3) * 16 * S.pit;
+
+      const alpha = Math.max(0, (1 - radius/580)) * (0.65 + (S.flatness-0.96)*8);
+      const hueBase = 270 + Math.sin(S.seed*0.1 + i)*22;
+      const hue = cold ? hueBase - 12 : hueBase + (soft?6:0);
+      const sat = cold ? 88 : (soft ? 70 : 62);
+      const light = 48 + (i / S.purpleCount)*22;
+
+      ctx.beginPath();
+      ctx.arc(cx + wobbleX, cy + wobbleY, radius, 0, Math.PI*2);
+      ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${light}%, ${Math.min(1, alpha)})`;
+      ctx.lineWidth = cold ? 1.6 : (soft ? 2.8 : 2.2);
+      if(soft && !cold){
+        ctx.shadowColor = `hsla(${hue},100%,70%,0.45)`;
+        ctx.shadowBlur = 18 * S.flatness;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Inner knife
+    const knifeBase = Math.cos(S.seed * 0.1 + S.innerAccum * 1.9) * 0.9;
+    const knifeAngle = knifeBase + S.time * 0.12 + Math.sin(S.seed*0.05)*0.1;
+    const len = 900;
+    const x1 = cx - Math.cos(knifeAngle)*len;
+    const y1 = cy - Math.sin(knifeAngle)*len;
+    const x2 = cx + Math.cos(knifeAngle)*len;
+    const y2 = cy + Math.sin(knifeAngle)*len;
+
+    ctx.save();
+    ctx.globalAlpha = 0.9 * S.flatness + 0.1;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = cold ? 2.4 : (soft ? 1.4 : 1.8);
+    if(soft){
+      ctx.shadowColor = '#c4b5fd';
+      ctx.shadowBlur = 24;
+    } else if(isReactor){
+      ctx.shadowColor = '#7dd3fc';
+      ctx.shadowBlur = 12;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.stroke();
+    ctx.restore();
+
+    // +211 / -211 sparks
+    const spark = 211;
+    const sx1 = cx + Math.cos(knifeAngle)*spark;
+    const sy1 = cy + Math.sin(knifeAngle)*spark;
+    const sx2 = cx - Math.cos(knifeAngle)*spark;
+    const sy2 = cy - Math.sin(knifeAngle)*spark;
+    [[sx1,sy1,1],[sx2,sy2,-1]].forEach(([sx,sy,sgn])=>{
+      const pulse = 0.5 + 0.5*Math.sin(S.time*3.2 + S.seed*0.01 + sgn);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2.8 + pulse*2.2, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${0.75 + pulse*0.25})`;
+      ctx.shadowColor = cold ? '#38bdf8' : '#a78bfa';
+      ctx.shadowBlur = 10 + pulse*10;
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+
+    // Inner pause indicator (subtle ring)
+    if(S.innerPaused){
+      ctx.beginPath();
+      ctx.arc(cx, cy, 26 + Math.sin(S.time*5)*2, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(167,139,250,0.35)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // HUD
+    ctx.fillStyle = 'rgba(0,0,0,0.68)';
+    ctx.fillRect(12, 12, 328, 112);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeRect(12.5, 12.5, 328, 112);
+
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillText(`FRAME ${String(S.frame).padStart(6,'0')}   STEP ${S.step}/18`, 24, 34);
+    ctx.fillText(`TIME  ${S.time.toFixed(2)}s   ${S.innerPaused ? 'INNER PAUSED' : 'INNER RUN'}`, 24, 54);
+    ctx.fillText(`SEED  ${S.seed}`, 24, 74);
+    ctx.fillStyle = '#e4e4e7';
+    const promptShort = S.prompt.length > 38 ? S.prompt.slice(0,35)+'…' : S.prompt;
+    ctx.fillText(`> ${promptShort}`, 24, 94);
+    ctx.fillStyle = cold ? '#7dd3fc' : '#c4b5fd';
+    ctx.fillText(`MODE ${S.mode.toUpperCase()}  FPS ${S.fps}  FLAT ${S.flatness.toFixed(3)}`, 24, 114);
+  }
+
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(!S.running) return;
+    const interval = 1000 / S.fps;
+    if(now - S.lastRender < interval) return;
+    S.lastRender = now;
+
+    const delta = Math.min(0.1, (now - S.prevNow)/1000);
+    S.prevNow = now;
+
+    // Chronos core: inner pauses every 2s for 0.5s
+    const elapsed = (now - S.startTime)/1000;
+    const cycle = elapsed % 2.5;
+    S.innerPaused = cycle > 2.0;
+
+    const innerDelta = S.innerPaused ? 0 : delta * S.innerTime;
+    const outerDelta = delta * S.outerTime;
+
+    S.innerAccum += innerDelta;
+    S.time += outerDelta;
+    S.frame++;
+    S.step = S.frame % 18;
+
+    // live update sliders in case they change during render
+    S.flatness = parseFloat(flatnessEl.value);
+    S.pit = parseFloat(pitEl.value);
+
+    renderFrame();
+    updateLive();
+  }
+
+  // Events
+  promptEl.addEventListener('input', () => {
+    const h = hashPrompt(promptEl.value);
+    seedEl.value = h;
+    promptHashEl.textContent = 'seed:' + h;
+  });
+  [flatnessEl, pitEl, innerTimeEl, outerTimeEl, purpleCountEl].forEach(el=>{
+    el.addEventListener('input', updateSliderLabels);
+  });
+  modeAbstract.addEventListener('click', ()=>setMode('abstract'));
+  modeCold.addEventListener('click', ()=>setMode('cold'));
+  fpsEl.addEventListener('change', ()=>{ S.fps = parseInt(fpsEl.value,10); });
+
+  renderBtn.addEventListener('click', startRender);
+
+  copyReplay.addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard.writeText(replayCode.textContent);
+      copyReplay.textContent = 'Copied!';
+      setTimeout(()=>copyReplay.textContent='Copy',1200);
+    }catch{}
+  });
+
+  exportPng.addEventListener('click', ()=>{
+    const a = document.createElement('a');
+    a.download = `knife6-witness-${S.seed}-${Date.now()}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+
+  exportJson.addEventListener('click', ()=>{
+    const data = {
+      prompt: S.prompt,
+      seed: S.seed,
+      flatness: S.flatness,
+      pit: S.pit,
+      innerTime: S.innerTime,
+      outerTime: S.outerTime,
+      purpleCount: S.purpleCount,
+      mode: S.mode,
+      fps: S.fps,
+      version: 'KNIFE-6 v2'
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.download = `knife6-params-${S.seed}.json`;
+    a.href = URL.createObjectURL(blob);
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    promptEl.value = 'abstract beauty';
+    seedEl.value = hashPrompt(promptEl.value);
+    flatnessEl.value = '0.986';
+    pitEl.value = '0.500';
+    innerTimeEl.value = '0.5';
+    outerTimeEl.value = '2.2';
+    purpleCountEl.value = '11';
+    fpsEl.value = '120';
+    setMode('abstract');
+    updateSliderLabels();
+    promptHashEl.textContent = 'seed:' + seedEl.value;
+    startRender();
+  });
+
+  // Init
+  function init(){
+    updateSliderLabels();
+    const initialHash = hashPrompt(promptEl.value);
+    seedEl.value = initialHash;
+    promptHashEl.textContent = 'seed:' + initialHash;
+    setMode('abstract');
+    startRender();
+    requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
