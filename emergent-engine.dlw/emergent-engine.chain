@@ -1,0 +1,9 @@
+ROOT0-DLW-CHAIN-v1
+index : 494
+slug  : emergent-engine
+seal  : c74e8a52a80af87b444ec5f416f23af149a238c25b663cac8fc904b5d7e15d17
+prev  : ac6b3b8d2c90193bb5b926c2ce5596ff7ee1b09d5af20de92e7444b4bc4cf895
+link  : 100192e8e9af12a27cc4a33db747a643b34e2ba03564605e44cc58f63a2e8293
+head  : 3447d3a0533aaf1e29a8bdc67a9774884fb3ae9dbc8a17064b7a008ca3c4ec90
+
+— the tether: link = sha256(index|slug|seal|prev). the chain head commits to the whole corpus.
